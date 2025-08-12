@@ -5,6 +5,7 @@ Thermal image upload API routes
 import asyncio
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Request, BackgroundTasks
 from fastapi.responses import StreamingResponse
+import json
 from sqlalchemy.orm import Session
 from typing import List, Optional, AsyncGenerator
 from pydantic import BaseModel
@@ -452,4 +453,4 @@ async def delete_batch(
 @router.get("/health")
 async def health_check():
     """Health check endpoint"""
-    return {"status": "healthy", "service": "upload"}    
+    return {"status": "healthy", "service": "upload"}        

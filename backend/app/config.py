@@ -63,6 +63,11 @@ class Settings(BaseSettings):
         "deepseek/deepseek-chat-v3-0324:free",
     ]
 
+    ENABLE_LLM_FALLBACK: bool = os.getenv("ENABLE_LLM_FALLBACK", "true").lower() == "true"
+    ENABLE_PATTERN_FALLBACK: bool = os.getenv("ENABLE_PATTERN_FALLBACK", "false").lower() == "true"
+    USE_ULTRALYTICS_V8_FALLBACK: bool = os.getenv("USE_ULTRALYTICS_V8_FALLBACK", "false").lower() == "true"
+    ALLOW_MODEL_DOWNLOAD: bool = os.getenv("ALLOW_MODEL_DOWNLOAD", "false").lower() == "true"
+
     # Logging
     LOG_LEVEL: str = "INFO"
     LOG_FORMAT: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -78,4 +83,4 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
 
-settings = Settings()    
+settings = Settings()        

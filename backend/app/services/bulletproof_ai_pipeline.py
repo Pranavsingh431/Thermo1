@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 class ModelSource(Enum):
     YOLO_NAS_V1 = "YOLO_NAS_V1"
+    LLM_FALLBACK = "LLM_FALLBACK"
     PATTERN_FALLBACK = "PATTERN_FALLBACK"
     CRITICAL_FAILURE = "CRITICAL_FAILURE"
 
@@ -303,40 +304,86 @@ class BulletproofAIPipeline:
                 
                 # Fall through to pattern detection
         
-        # Failsafe Path: Pattern-based detection
-        try:
-            processing_steps.append("Using pattern-based component detection (failsafe)")
-            
-            pattern_result = self._pattern_based_detection(image_path, thermal_data)
-            
-            processing_steps.append("✅ Pattern-based detection completed")
-            
-            return {
-                "model_source": ModelSource.PATTERN_FALLBACK.value,
-                "model_version": "pattern_detection_v2.0",
-                "total_components": pattern_result["total_components"],
-                "component_counts": pattern_result["component_counts"],
-                "detections": pattern_result["detections"]
-            }
-            
-        except Exception as e:
-            # Even pattern detection failed - return minimal result
-            self.logger.critical(f"🚨 CRITICAL: Even pattern detection failed: {e}")
-            warnings.append(f"All detection methods failed: {e}")
-            processing_steps.append(f"❌ All detection methods failed")
-            
-            return {
-                "model_source": ModelSource.CRITICAL_FAILURE.value,
-                "model_version": "emergency_fallback_v1.0",
-                "total_components": 0,
-                "component_counts": {
-                    "nuts_bolts": 0,
-                    "mid_span_joint": 0,
-                    "polymer_insulator": 0,
-                    "conductor": 0
-                },
-                "detections": []
-            }
+        from app.config import settings
+        if getattr(settings, "ENABLE_LLM_FALLBACK", True) and settings.OPEN_ROUTER_KEY:
+            try:
+                processing_steps.append("Using LLM-based detection (OpenRouter fallback)")
+                llm_result = self._llm_based_detection(image_path, thermal_data)
+                processing_steps.append("✅ LLM-based detection completed")
+                return {
+                    "model_source": ModelSource.LLM_FALLBACK.value,
+                    "model_version": f"openrouter",
+                    "total_components": llm_result["total_components"],
+                    "component_counts": llm_result["component_counts"],
+                    "detections": llm_result["detections"]
+                }
+            except Exception as e:
+                self.logger.error(f"LLM fallback failed: {e}")
+                warnings.append(f"LLM fallback failed: {e}")
+                processing_steps.append("❌ LLM fallback failed")
+
+        if getattr(settings, "ENABLE_PATTERN_FALLBACK", False):
+            try:
+                processing_steps.append("Using pattern-based component detection (failsafe)")
+                pattern_result = self._pattern_based_detection(image_path, thermal_data)
+                processing_steps.append("✅ Pattern-based detection completed")
+                return {
+                    "model_source": ModelSource.PATTERN_FALLBACK.value,
+                    "model_version": "pattern_detection_v2.0",
+                    "total_components": pattern_result["total_components"],
+                    "component_counts": pattern_result["component_counts"],
+                    "detections": pattern_result["detections"]
+                }
+            except Exception as e:
+                self.logger.error(f"Pattern fallback failed: {e}")
+                warnings.append(f"Pattern fallback failed: {e}")
+                processing_steps.append("❌ Pattern fallback failed")
+        self.logger.critical("All detection methods failed; returning minimal result")
+        warnings.append("All detection methods failed")
+        processing_steps.append("❌ All detection methods failed")
+        return {
+            "model_source": ModelSource.CRITICAL_FAILURE.value,
+            "model_version": "emergency_fallback_v1.0",
+            "total_components": 0,
+            "component_counts": {
+                "nuts_bolts": 0,
+                "mid_span_joint": 0,
+                "polymer_insulator": 0,
+                "conductor": 0
+            },
+            "detections": []
+        }
+
+    def _llm_based_detection(self, image_path: str, thermal_data: Dict) -> Dict:
+        from app.utils.llm_openrouter import generate_detections_via_llm
+        detections = generate_detections_via_llm(image_path, thermal_data)
+        component_counts = {"nuts_bolts": 0, "mid_span_joint": 0, "polymer_insulator": 0, "conductor": 0}
+        for d in detections:
+            t = d.get("component_type")
+            if t in component_counts:
+                component_counts[t] += 1
+        return {
+            "total_components": len(detections),
+            "component_counts": component_counts,
+            "detections": detections
+        }
+
+
+        self.logger.critical("All detection methods failed; returning minimal result")
+        warnings.append("All detection methods failed")
+        processing_steps.append("❌ All detection methods failed")
+        return {
+            "model_source": ModelSource.CRITICAL_FAILURE.value,
+            "model_version": "emergency_fallback_v1.0",
+            "total_components": 0,
+            "component_counts": {
+                "nuts_bolts": 0,
+                "mid_span_joint": 0,
+                "polymer_insulator": 0,
+                "conductor": 0
+            },
+            "detections": []
+        }
     
     def _yolo_nas_detection(self, image_path: str, thermal_data: Dict) -> Dict:
         """YOLOv8 component detection implementation"""
@@ -646,4 +693,4 @@ class BulletproofAIPipeline:
         }
 
 # Global bulletproof pipeline instance
-bulletproof_ai_pipeline = BulletproofAIPipeline()        
+bulletproof_ai_pipeline = BulletproofAIPipeline()                                                                

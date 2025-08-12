@@ -135,6 +135,80 @@ def build_llm_prompt(analysis: Any, detections: List[Any]) -> str:
         ],
     }
     return json.dumps(prompt)
+def generate_detections_via_llm(image_path: str, thermal_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    ctx = {
+        "image_filename": os.path.basename(image_path),
+        "thermal_stats": {
+            "max_temperature": float(thermal_data.get("thermal_stats", {}).get("max_temperature", 50.0)),
+            "min_temperature": float(thermal_data.get("thermal_stats", {}).get("min_temperature", 20.0)),
+            "avg_temperature": float(thermal_data.get("thermal_stats", {}).get("avg_temperature", 35.0)),
+        },
+        "hotspot_analysis": {
+            "critical_hotspots": int(thermal_data.get("hotspot_analysis", {}).get("critical_hotspots", 0)),
+            "potential_hotspots": int(thermal_data.get("hotspot_analysis", {}).get("potential_hotspots", 0)),
+            "normal_zones": int(thermal_data.get("hotspot_analysis", {}).get("normal_zones", 1)),
+        },
+    }
+    schema = {
+        "detections": [
+            {
+                "component_type": "nuts_bolts|mid_span_joint|polymer_insulator|conductor",
+                "confidence": "float 0..1",
+                "bbox": ["x", "y", "w", "h integers in pixels"],
+                "defect_type": "string or null",
+                "risk_level": "low|medium|high|critical",
+                "max_temperature": "float",
+                "avg_temperature": "float",
+                "min_temperature": "float"
+            }
+        ],
+        "notes": "optional string"
+    }
+    prompt = json.dumps({
+        "task": "Given thermal context, propose plausible component detections for overhead transmission assets.",
+        "inputs": ctx,
+        "output_schema": schema,
+        "constraints": [
+            "Return STRICT JSON only with keys: detections, notes",
+            "Limit detections to at most 10",
+            "bbox must be [x,y,w,h] with non-negative integers",
+            "confidence between 0 and 1"
+        ]
+    })
+    out = openrouter_client.generate_json(prompt, system="You produce only JSON following the requested schema.")
+    detections = out.get("detections", []) if isinstance(out, dict) else []
+    norm = []
+    for d in detections:
+        try:
+            t = str(d.get("component_type", "")).strip()
+            if t not in {"nuts_bolts", "mid_span_joint", "polymer_insulator", "conductor"}:
+                continue
+            conf = float(d.get("confidence", 0.5))
+            conf = max(0.0, min(1.0, conf))
+            bbox = d.get("bbox", [0, 0, 0, 0])
+            if not isinstance(bbox, (list, tuple)) or len(bbox) != 4:
+                continue
+            x, y, w, h = [int(max(0, int(v))) for v in bbox]
+            risk = str(d.get("risk_level", "low"))
+            maxt = float(d.get("max_temperature", ctx["thermal_stats"]["max_temperature"]))
+            avgt = float(d.get("avg_temperature", ctx["thermal_stats"]["avg_temperature"]))
+            mint = float(d.get("min_temperature", ctx["thermal_stats"]["min_temperature"]))
+            norm.append({
+                "component_type": t,
+                "confidence": conf,
+                "bbox": [x, y, w, h],
+                "center": (x + w // 2, y + h // 2),
+                "defect_type": d.get("defect_type"),
+                "risk_level": risk,
+                "max_temperature": maxt,
+                "avg_temperature": avgt,
+                "min_temperature": mint,
+                "area_pixels": int(w * h)
+            })
+        except Exception:
+            continue
+    return norm[:10]
+
 
 
 # Singleton
