@@ -42,28 +42,36 @@ const Dashboard = () => {
   // Handle file upload
   const handleUpload = async (options) => {
     const { fileList } = options;
-    
-    if (fileList.length === 0) return;
-    
+    if (!fileList || fileList.length === 0) return;
     try {
       setUploading(true);
       setUploadProgress(0);
-      
-      const files = fileList.map(file => file.originFileObj || file);
-      
-      const result = await uploadService.uploadThermalImages(files, {
-        ambientTemperature: '34.0',
-        notes: 'Dashboard upload',
-        onProgress: (progressEvent) => {
-          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          setUploadProgress(progress);
-        },
-      });
-      
+      const files = fileList.map(f => f.originFileObj || f);
+      const batchId = (Date.now() + Math.random()).toString(36);
+      const confirmedFiles = [];
+      let completed = 0;
+      for (const file of files) {
+        const okType = /(\.jpg|\.jpeg|\.png|\.tif|\.tiff|\.bmp)$/i.test(file.name);
+        if (!okType) {
+          message.warning(`${file.name}: unsupported file type`);
+          continue;
+        }
+        const presign = await uploadService.presign(file, batchId);
+        await uploadService.putPresigned(presign.url, presign.headers, file, (p) => {
+          setUploadProgress(p);
+        });
+        confirmedFiles.push({
+          filename: file.name,
+          key: presign.key,
+          contentType: file.type,
+          sizeBytes: file.size
+        });
+        completed += 1;
+        setUploadProgress(Math.round((completed / files.length) * 100));
+      }
+      const result = await uploadService.confirm(batchId, confirmedFiles, '34.0', 'Dashboard presigned upload');
       setCurrentBatch(result.batch_id);
-      message.success(`Upload successful! ${result.successful_uploads} files uploaded.`);
-      
-      // Subscribe to server-sent events for batch progress
+      message.success(`Uploaded ${result.successful_uploads} files. Processing started.`);
       if (unsubscribeRef.current) {
         unsubscribeRef.current();
       }
@@ -73,12 +81,10 @@ const Dashboard = () => {
         message.loading({ content: `Processing batch ${result.batch_id}… ${percent}%`, key: 'batch', duration: 0 });
         if (completed + failed >= total && total > 0) {
           message.success({ content: `Batch ${result.batch_id} completed`, key: 'batch', duration: 3 });
-          // refresh lists
           refetchAnalyses();
           if (unsubscribeRef.current) unsubscribeRef.current();
         }
       });
-      
     } catch (error) {
       console.error('Upload failed:', error);
       message.error('Upload failed: ' + (error.response?.data?.detail || error.message));
@@ -283,4 +289,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard; 
+export default Dashboard;  

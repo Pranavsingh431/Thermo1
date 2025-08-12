@@ -65,6 +65,18 @@ class PresignResponse(BaseModel):
     url: str
     headers: dict
     key: str
+class ConfirmFile(BaseModel):
+    filename: str
+    key: str
+    content_type: Optional[str] = None
+    size_bytes: Optional[int] = None
+
+class ConfirmRequest(BaseModel):
+    batch_id: str
+    files: List[ConfirmFile]
+    ambient_temperature: Optional[float] = 34.0
+    notes: Optional[str] = None
+
 
 @router.post("/thermal-images", response_model=UploadResponse)
 async def upload_thermal_images(
@@ -255,6 +267,91 @@ async def presign_upload(
     if not data:
         raise HTTPException(status_code=500, detail="Failed to generate presigned upload")
     return PresignResponse(provider=data["provider"], url=data["url"], headers=data["headers"], key=data["key"])
+
+@router.post("/thermal-images/confirm", response_model=UploadResponse)
+async def confirm_presigned_upload(
+    req: ConfirmRequest,
+    current_user: User = Depends(require_permission("upload")),
+    db: Session = Depends(get_db)
+):
+    if not req.files:
+        raise HTTPException(status_code=400, detail="No files provided")
+    if len(req.files) > 5000:
+        raise HTTPException(status_code=400, detail="Maximum 5000 files allowed per batch")
+    substations = db.query(Substation).filter(Substation.is_active == True).all()
+    batch_id = req.batch_id
+    successful_uploads = 0
+    failed_uploads = 0
+    upload_results: List[FileUploadStatus] = []
+    provider = settings.OBJECT_STORAGE_PROVIDER.lower()
+    bucket = settings.OBJECT_STORAGE_BUCKET
+    for sequence, f in enumerate(req.files, 1):
+        try:
+            if not f.filename or not f.key:
+                failed_uploads += 1
+                upload_results.append(FileUploadStatus(filename=f.filename or "", status="failed", message="Missing filename or key"))
+                continue
+            storage_uri = None
+            if settings.USE_OBJECT_STORAGE and provider != "none":
+                if provider == "s3":
+                    storage_uri = f"s3://{bucket}/{f.key}"
+                elif provider == "gcs":
+                    storage_uri = f"gs://{bucket}/{f.key}"
+            metadata = {}
+            substation_id = None
+            thermal_scan = ThermalScan(
+                original_filename=f.filename,
+                file_path=storage_uri or f.key,
+                file_size_bytes=f.size_bytes,
+                file_hash=None,
+                camera_model=metadata.get("camera_model") if metadata else None,
+                camera_software_version=metadata.get("camera_software_version") if metadata else None,
+                image_width=metadata.get("image_width") if metadata else None,
+                image_height=metadata.get("image_height") if metadata else None,
+                latitude=metadata.get("latitude") if metadata else None,
+                longitude=metadata.get("longitude") if metadata else None,
+                altitude=metadata.get("altitude") if metadata else None,
+                gps_timestamp=metadata.get("gps_timestamp") if metadata else None,
+                capture_timestamp=datetime.now(),
+                ambient_temperature=req.ambient_temperature,
+                camera_settings=metadata.get("camera_settings") if metadata else None,
+                batch_id=batch_id,
+                batch_sequence=sequence,
+                substation_id=substation_id,
+                uploaded_by=current_user.id,
+                notes=req.notes
+            )
+            db.add(thermal_scan)
+            db.commit()
+            db.refresh(thermal_scan)
+            successful_uploads += 1
+            upload_results.append(FileUploadStatus(filename=f.filename, status="uploaded", message="Queued for processing", thermal_scan_id=thermal_scan.id))
+        except Exception as e:
+            logger.error(f"Failed to confirm file {f.filename}: {e}", exc_info=True)
+            failed_uploads += 1
+            upload_results.append(FileUploadStatus(filename=f.filename, status="failed", message=f"Confirm error: {str(e)}"))
+    processing_status = "idle"
+    if successful_uploads > 0:
+        try:
+            process_batch.delay(batch_id)
+        except Exception:
+            async def _run_batch():
+                db2: Session = SessionLocal()
+                try:
+                    await process_thermal_batch(batch_id, db2, current_user.id)
+                finally:
+                    db2.close()
+            asyncio.create_task(_run_batch())
+        processing_status = "queued"
+    return UploadResponse(
+        batch_id=batch_id,
+        total_files=len(req.files),
+        successful_uploads=successful_uploads,
+        failed_uploads=failed_uploads,
+        processing_status=processing_status,
+        message=f"Batch {batch_id}: {successful_uploads} confirmed, {failed_uploads} failed.",
+        details=upload_results
+    )
 
 @router.get("/batch/{batch_id}/status", response_model=BatchStatus)
 async def get_batch_status(
@@ -453,4 +550,4 @@ async def delete_batch(
 @router.get("/health")
 async def health_check():
     """Health check endpoint"""
-    return {"status": "healthy", "service": "upload"}        
+    return {"status": "healthy", "service": "upload"}                                                
