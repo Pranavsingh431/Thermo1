@@ -16,15 +16,12 @@ from app.models.user import User
 def quick_setup():
     """Create just the engineer user for demo"""
     db = SessionLocal()
-    
     try:
         # Check if engineer user already exists
         existing_user = db.query(User).filter(User.username == "engineer").first()
         if existing_user:
             print("✅ Engineer user already exists")
-            return True
-        
-        # Create engineer user
+            return True# Create engineer user
         engineer_user = User(
             username="engineer",
             email="engineer@tatapower.com",
@@ -37,12 +34,10 @@ def quick_setup():
         engineer_user.set_password("engineer123")
         db.add(engineer_user)
         db.commit()
-        
         print("✅ Engineer user created successfully!")
         print("   Username: engineer")
         print("   Password: engineer123")
         return True
-        
     except Exception as e:
         print(f"❌ Error: {e}")
         db.rollback()
@@ -56,4 +51,4 @@ if __name__ == "__main__":
     if success:
         print("🎉 Ready for demo!")
     else:
-        print("❌ Setup failed") 
+        print("❌ Setup failed")    

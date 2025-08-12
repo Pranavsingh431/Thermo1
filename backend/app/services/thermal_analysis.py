@@ -40,18 +40,15 @@ async def process_thermal_batch(batch_id: str, db: Session, user_id: int):
     """Process a batch of thermal images using ENHANCED AI pipeline"""
     pipeline_name = "ENHANCED AI" if ENHANCED_AI_AVAILABLE else ("FULL AI" if FULL_AI_AVAILABLE else "Lightweight AI")
     logger.info(f"🚀 Starting {pipeline_name}-powered processing for batch {batch_id}")
-    
     try:
         # Get all thermal scans in this batch
         scans = db.query(ThermalScan).filter(
             ThermalScan.batch_id == batch_id,
             ThermalScan.processing_status == "pending"
         ).all()
-        
         if not scans:
             logger.warning(f"No pending scans found for batch {batch_id}")
             return
-        
         batch_results = {
             'total_images': len(scans),
             'processed_count': 0,
@@ -69,7 +66,6 @@ async def process_thermal_batch(batch_id: str, db: Session, user_id: int):
         
         critical_alerts = []
         substation_name = "Unknown"
-        
         # Initialize FULL AI System
         if FULL_AI_AVAILABLE:
             ai_system = create_full_ai_system()
@@ -77,31 +73,24 @@ async def process_thermal_batch(batch_id: str, db: Session, user_id: int):
         else:
             ai_system = None
             batch_results['ai_models_used'] = ['Lightweight Thermal Analysis']
-        
         # Process each scan with FULL AI pipeline
         for scan in scans:
             try:
                 logger.info(f"🤖 Processing {scan.original_filename} with FULL AI pipeline...")
-                
                 # Update processing status
                 scan.update_processing_status("processing")
                 db.commit()
-                
                 # Run FULL AI analysis
                 ai_result = await process_single_thermal_image_full_ai(scan, db, ai_system)
-                
                 if ai_result:
                     batch_results['processed_count'] += 1
-                    
                     # Update counters based on FULL AI results
                     if ai_result.is_good_quality:
                         batch_results['good_quality_count'] += 1
                     else:
                         batch_results['poor_quality_count'] += 1
-                    
                     batch_results['total_components'] += ai_result.total_components_detected or 0
                     batch_results['total_hotspots'] += ai_result.total_hotspots or 0
-                    
                     if ai_result.overall_risk_level == "critical":
                         batch_results['critical_count'] += 1
                         critical_alerts.append({
@@ -116,19 +105,15 @@ async def process_thermal_batch(batch_id: str, db: Session, user_id: int):
                         batch_results['potential_count'] += 1
                     else:
                         batch_results['normal_count'] += 1
-                    
                     # Count defects detected
                     detections = db.query(Detection).filter(Detection.ai_analysis_id == ai_result.id).all()
                     defective_detections = [d for d in detections if d.hotspot_classification != 'normal']
                     batch_results['defects_detected'] += len(defective_detections)
-                    
                     # Get substation name for reporting
                     if scan.substation:
                         substation_name = scan.substation.name
-                    
                     # Mark as completed
                     scan.update_processing_status("completed")
-                    
                 else:
                     batch_results['failed_count'] += 1
                     scan.update_processing_status("failed")
@@ -422,4 +407,4 @@ async def process_single_thermal_image_full_ai(scan: ThermalScan, db: Session, a
         db.commit()
         db.refresh(ai_analysis)
         
-        return ai_analysis  
+        return ai_analysis    

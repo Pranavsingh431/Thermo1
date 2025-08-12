@@ -38,23 +38,19 @@ logger = logging.getLogger(__name__)
 
 class ThermalImageProcessor:
     """Handles processing of thermal images through the API"""
-    
     def __init__(self, api_base_url: str, substation_code: str):
         self.api_base_url = api_base_url.rstrip('/')
         self.substation_code = substation_code
         self.session: Optional[aiohttp.ClientSession] = None
-        
         # Statistics
         self.processed_count = 0
         self.failed_count = 0
         self.start_time = datetime.now()
-        
     async def initialize(self):
         """Initialize HTTP session"""
         self.session = aiohttp.ClientSession(
             timeout=aiohttp.ClientTimeout(total=60)
         )
-        
     async def cleanup(self):
         """Cleanup HTTP session"""
         if self.session:
@@ -63,7 +59,6 @@ class ThermalImageProcessor:
     async def process_image(self, image_path: Path, processed_dir: Path) -> bool:
         """
         Process a single thermal image through the API
-        
         Args:
             image_path: Path to the thermal image
             processed_dir: Directory to move processed images
@@ -78,38 +73,30 @@ class ThermalImageProcessor:
             
         try:
             logger.info(f"📷 Processing thermal image: {image_path.name}")
-            
             # Read the image file
             async with aiofiles.open(image_path, 'rb') as f:
                 image_data = await f.read()
-            
             # Prepare the upload request
             data = aiohttp.FormData()
-            data.add_field('file', 
-                          image_data, 
+            data.add_field('file',
+                          image_data,
                           filename=image_path.name,
                           content_type='image/jpeg')
             data.add_field('substation_code', self.substation_code)
             data.add_field('ambient_temperature', '34.0')  # Tata Power standard
             data.add_field('notes', f'Simulated FLIR T560 capture - {datetime.now().isoformat()}')
-            
             # Upload to the API
             upload_url = f"{self.api_base_url}/api/upload/thermal"
-            
             async with self.session.post(upload_url, data=data) as response:
                 response_text = await response.text()
-                
                 if response.status == 201:
                     # Success
                     response_data = await response.json() if response.content_type == 'application/json' else {}
-                    
                     logger.info(f"✅ Successfully processed {image_path.name}")
                     logger.info(f"   📊 Analysis ID: {response_data.get('analysis_id', 'Unknown')}")
                     logger.info(f"   🌡️  Status: {response_data.get('status', 'Unknown')}")
-                    
                     # Move to processed directory
                     await self._move_to_processed(image_path, processed_dir)
-                    
                     self.processed_count += 1
                     return True
                     
@@ -400,4 +387,4 @@ async def main():
 
 if __name__ == "__main__":
     # Run the simulator
-    asyncio.run(main()) 
+    asyncio.run(main())  

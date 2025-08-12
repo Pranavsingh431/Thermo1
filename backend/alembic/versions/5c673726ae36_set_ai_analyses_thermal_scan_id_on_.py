@@ -24,7 +24,7 @@ def upgrade() -> None:
         """
         DO $$ BEGIN
           IF EXISTS (
-            SELECT 1 FROM information_schema.table_constraints 
+            SELECT 1 FROM information_schema.table_constraints
             WHERE table_name='ai_analyses' AND constraint_name='fk_ai_analyses_thermal_scan_id'
           ) THEN
             ALTER TABLE ai_analyses DROP CONSTRAINT fk_ai_analyses_thermal_scan_id;

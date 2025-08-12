@@ -17,33 +17,27 @@ logger = logging.getLogger(__name__)
 
 class ThermalImageProcessor:
     """Process thermal images and extract metadata"""
-    
     def __init__(self):
         self.supported_formats = ['.jpg', '.jpeg', '.png', '.tiff', '.bmp']
     
     def validate_image_file(self, filename: str, file_size: int) -> Tuple[bool, str]:
         """Validate uploaded image file"""
-        
         # Check file extension
         file_ext = os.path.splitext(filename.lower())[1]
         if file_ext not in self.supported_formats:
             return False, f"Unsupported file format: {file_ext}"
-        
         # Check file size
         if file_size > settings.MAX_FILE_SIZE:
             max_size_mb = settings.MAX_FILE_SIZE / (1024 * 1024)
             return False, f"File too large. Maximum size: {max_size_mb}MB"
-        
         # Check filename pattern (optional)
         if not filename.startswith('FLIR'):
             logger.warning(f"Non-FLIR filename detected: {filename}")
-        
         return True, "Valid image file"
     
     def calculate_file_hash(self, file_content: bytes) -> str:
         """Calculate SHA-256 hash of file content for deduplication"""
         return hashlib.sha256(file_content).hexdigest()
-    
     def extract_image_metadata(self, image_path: str) -> Dict:
         """Extract comprehensive metadata from thermal image"""
         metadata = {
@@ -65,7 +59,6 @@ class ThermalImageProcessor:
                 # Basic image info
                 metadata['image_width'] = img.width
                 metadata['image_height'] = img.height
-                
                 # Extract EXIF data
                 exif_data = img._getexif()
                 if exif_data:
@@ -73,19 +66,14 @@ class ThermalImageProcessor:
                 # Attempt to extract emissivity/ambient if present
                 if 'camera_settings' in metadata:
                     metadata['camera_settings'].setdefault('Emissivity', settings.EMISSIVITY_DEFAULT)
-                
         except Exception as e:
             logger.error(f"Failed to extract metadata from {image_path}: {e}")
-        
         return metadata
-    
     def _parse_exif_data(self, exif_data: dict) -> Dict:
         """Parse EXIF data and extract relevant information"""
         parsed = {}
-        
         for tag, value in exif_data.items():
             tag_name = TAGS.get(tag, tag)
-            
             if tag_name == 'Make':
                 parsed['camera_model'] = str(value)
             elif tag_name == 'Model':
@@ -104,15 +92,12 @@ class ThermalImageProcessor:
                 if 'camera_settings' not in parsed:
                     parsed['camera_settings'] = {}
                 parsed['camera_settings'][tag_name] = value
-            
             # Store additional camera settings
             elif tag_name in ['ExposureTime', 'FNumber', 'ISO', 'FocalLength']:
                 if 'camera_settings' not in parsed:
                     parsed['camera_settings'] = {}
                 parsed['camera_settings'][tag_name] = str(value)
-        
         return parsed
-    
     def _parse_gps_data(self, gps_info: dict) -> Dict:
         """Parse GPS information from EXIF data"""
         gps_data = {}
@@ -317,4 +302,4 @@ class ThermalImageProcessor:
         return estimates
 
 # Global thermal processor instance
-thermal_processor = ThermalImageProcessor() 
+thermal_processor = ThermalImageProcessor()  

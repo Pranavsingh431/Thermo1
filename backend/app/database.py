@@ -54,7 +54,6 @@ def init_db() -> None:
     try:
         # Import all models here to ensure they are registered with SQLAlchemy
         from app.models import user, thermal_scan, ai_analysis, substation
-        
         # Create all tables
         Base.metadata.create_all(bind=engine)
         logger.info("Database tables created successfully")

@@ -19,13 +19,13 @@ logger = logging.getLogger(__name__)
 
 class EmailService:
     """Service for sending emails"""
-    
+
     def __init__(self):
         self.smtp_server = settings.SMTP_SERVER
         self.smtp_port = settings.SMTP_PORT
         self.username = settings.SMTP_USERNAME
         self.password = settings.SMTP_PASSWORD
-    
+
     def send_email(
         self,
         to_emails: List[str],
@@ -85,7 +85,7 @@ class EmailService:
                             outer.attach(part)
                     except Exception as att_err:
                         logger.warning(f"Skipping attachment {file_path}: {att_err}")
-            
+
             # Send email
             with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
                 server.starttls()
@@ -95,14 +95,14 @@ class EmailService:
                     server.send_message(outer)
                 else:
                     server.send_message(outer, mail_options=['SMTPUTF8'])
-            
+
             logger.info(f"Email sent successfully to {to_emails}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to send email: {e}")
             return False
-    
+
     def send_thermal_analysis_report(
         self,
         analysis_results: dict,
@@ -111,18 +111,18 @@ class EmailService:
         attachments: Optional[List[str]] = None,
     ) -> bool:
         """Send thermal analysis report to chief engineer"""
-        
+
         # Generate email content
         subject = self._generate_email_subject(batch_summary, critical_alerts)
         text_body = self._generate_text_body(analysis_results, batch_summary, critical_alerts)
         html_body = self._generate_html_body(analysis_results, batch_summary, critical_alerts)
-        
+
         # Send to chief engineer
         recipient = settings.CHIEF_ENGINEER_EMAIL
         if not recipient or recipient == "tata.power.chief@example.com":
             logger.warning("Chief engineer email not configured - skipping email")
             return False
-        
+
         return self.send_email(
             to_emails=[recipient],
             subject=subject,
@@ -130,17 +130,17 @@ class EmailService:
             html_body=html_body,
             attachments=attachments,
         )
-    
+
     def _generate_email_subject(self, batch_summary: dict, critical_alerts: List[dict]) -> str:
         """Generate email subject based on analysis results"""
         total_images = batch_summary.get('total_images', 0)
         critical_count = len(critical_alerts)
-        
+
         if critical_count > 0:
             return f"🚨 URGENT: {critical_count} Critical Thermal Issues Detected - {total_images} Images Analyzed"
         else:
             return f"✅ Thermal Inspection Complete - {total_images} Images Analyzed (No Critical Issues)"
-    
+
     def _generate_text_body(
         self,
         analysis_results: dict,
@@ -148,7 +148,7 @@ class EmailService:
         critical_alerts: List[dict]
     ) -> str:
         """Generate plain text email body"""
-        
+
         body = f"""
 Thermal Inspection Analysis Report
 Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
@@ -174,7 +174,7 @@ Potential Issues: {analysis_results.get('potential_count', 0)}
 Normal Readings: {analysis_results.get('normal_count', 0)}
 
 """
-        
+
         if critical_alerts:
             body += "\nCRITICAL ALERTS REQUIRING IMMEDIATE ATTENTION\n"
             body += "=" * 45 + "\n"
@@ -186,7 +186,7 @@ Normal Readings: {analysis_results.get('normal_count', 0)}
    Confidence: {alert.get('confidence', 0)*100:.1f}%
    Risk Level: {alert.get('risk_level', 'High')}
 """
-        
+
         body += f"""
 
 NEXT STEPS
@@ -322,4 +322,4 @@ For technical support, contact: [Your Contact Information]
         return html
 
 # Global email service instance
-email_service = EmailService() 
+email_service = EmailService()  

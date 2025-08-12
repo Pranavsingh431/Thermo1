@@ -42,11 +42,10 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """
     Application lifespan manager with bulletproof initialization.
-    
+
     This ensures all production components are properly initialized
     before the application starts serving requests.
     """
-    
     logger.info("🚀 Initializing Tata Power Thermal Eye - Bulletproof Production System")
     
     try:
@@ -71,7 +70,6 @@ async def lifespan(app: FastAPI):
         os.makedirs("logs", exist_ok=True)
         os.makedirs("models", exist_ok=True)
         logger.info("✅ Directory structure created")
-        
         # Initialize bulletproof AI system (with graceful fallback)
         logger.info("🤖 Initializing bulletproof AI system...")
         try:
@@ -80,18 +78,14 @@ async def lifespan(app: FastAPI):
             logger.info(f"✅ AI System Status: {pipeline_status['pipeline_status']}")
             logger.info(f"   YOLO Available: {pipeline_status['yolo_available']}")
             logger.info(f"   Pattern Fallback: {pipeline_status['pattern_fallback_available']}")
-            
         except Exception as e:
             logger.warning(f"⚠️ AI system initialization warning: {e}")
             logger.info("🛡️ System will continue with pattern-based fallback")
-        
         logger.info("🎉 Bulletproof production system initialization complete")
         logger.info("🛡️ Zero-crash guarantee: ACTIVE")
         logger.info("⚖️ IEEE C57.91 compliance: ENFORCED")
         logger.info("🔒 SHA256 model verification: ENABLED")
-        
         yield
-        
     except Exception as e:
         logger.critical(f"🚨 CRITICAL: Application initialization failed: {e}")
         # Even if initialization fails, we should try to start with minimal functionality
@@ -148,7 +142,7 @@ async def root():
         "status": "operational",
         "features": [
             "Bulletproof AI pipeline with YOLO-NAS + pattern fallback",
-            "IEEE C57.91 compliant defect classification", 
+            "IEEE C57.91 compliant defect classification",
             "SHA256 model integrity verification",
             "Zero-crash exception handling",
             "Real FLIR thermal analysis",
@@ -162,14 +156,11 @@ async def root():
 @app.get("/api/ai-analyses/{analysis_id}")
 async def get_ai_analysis(analysis_id: int):
     """Get AI analysis results with model source transparency"""
-    
     from app.database import SessionLocal
     from app.models.ai_analysis import AIAnalysis
     
-    db = SessionLocal()
-    try:
+    db = SessionLocal()try:
         analysis = db.query(AIAnalysis).filter(AIAnalysis.id == analysis_id).first()
-        
         if not analysis:
             raise HTTPException(status_code=404, detail="Analysis not found")
         
@@ -201,7 +192,6 @@ async def get_ai_analysis(analysis_id: int):
             "ieee_compliant": True,  # All analyses are IEEE compliant
             "bulletproof_verified": True  # Verified by bulletproof system
         }
-        
     except HTTPException:
         raise
     except Exception as e:
@@ -213,21 +203,17 @@ async def get_ai_analysis(analysis_id: int):
 @app.get("/api/thermal-scans/{scan_id}")
 async def get_thermal_scan(scan_id: int):
     """Get thermal scan with processing transparency"""
-    
     from app.database import SessionLocal
     from app.models.thermal_scan import ThermalScan
     from app.models.ai_analysis import AIAnalysis
     
-    db = SessionLocal()
-    try:
+    db = SessionLocal()try:
         scan = db.query(ThermalScan).filter(ThermalScan.id == scan_id).first()
-        
         if not scan:
             raise HTTPException(status_code=404, detail="Thermal scan not found")
         
         # Get associated AI analysis
         analysis = db.query(AIAnalysis).filter(AIAnalysis.thermal_scan_id == scan_id).first()
-        
         scan_data = {
             "id": scan.id,
             "original_filename": scan.original_filename,
@@ -241,7 +227,6 @@ async def get_thermal_scan(scan_id: int):
             "created_at": scan.created_at,
             "ai_analysis": None
         }
-        
         if analysis:
             scan_data["ai_analysis"] = {
                 "id": analysis.id,
@@ -252,7 +237,6 @@ async def get_thermal_scan(scan_id: int):
                 "requires_immediate_attention": analysis.requires_immediate_attention,
                 "bulletproof_processed": True
             }
-        
         return scan_data
         
     except HTTPException:
@@ -287,13 +271,11 @@ if settings.ENVIRONMENT == "development":
                     "ieee_compliance": True,
                     "failsafe_ai": True,
                     "audit_trail": True
-                }
-            }
-            
+            }    
         except Exception as e:
             logger.error(f"Development status check failed: {e}")
             return {"error": str(e), "status": "degraded"}
 
 # Production startup message
 logger.info("🛡️ Bulletproof Thermal Eye system initialized")
-logger.info("🎯 Ready for Tata Power production deployment")  
+logger.info("🎯 Ready for Tata Power production deployment")        

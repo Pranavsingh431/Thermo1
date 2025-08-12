@@ -52,41 +52,41 @@ class EnhancedThermalAnalysisResult:
         self.is_good_quality: bool = True
         self.quality_score: float = 0.0
         self.processing_time: float = 0.0
-        
+
         # Model information
         self.model_version: str = "enhanced_ai_v2.0"
         self.yolo_model_used: str = "yolo_nas_s_transmission"
         self.thermal_extraction_method: str = "flir_advanced"
-        
+
         # Temperature analysis (from FLIR extraction)
         self.ambient_temperature: float = 34.0
         self.max_temperature: float = 34.0
         self.min_temperature: float = 34.0
         self.avg_temperature: float = 34.0
         self.temperature_variance: float = 0.0
-        
+
         # Hotspot detection (real analysis)
         self.total_hotspots: int = 0
         self.critical_hotspots: int = 0
         self.potential_hotspots: int = 0
         self.normal_zones: int = 0
-        
+
         # Component detection (real AI)
         self.total_components: int = 0
         self.nuts_bolts_count: int = 0
         self.mid_span_joints_count: int = 0
         self.polymer_insulators_count: int = 0
         self.conductor_count: int = 0
-        
+
         # Risk assessment
         self.overall_risk_level: str = "low"
         self.risk_score: float = 0.0
         self.requires_immediate_attention: bool = False
         self.summary_text: str = ""
-        
+
         # Enhanced detections with thermal data
         self.detections: List[Dict] = []
-        
+
         # FLIR-specific data
         self.camera_model: str = ""
         self.gps_data: Optional[Dict] = None
@@ -94,16 +94,16 @@ class EnhancedThermalAnalysisResult:
 
 class EnhancedThermalAnalyzer:
     """Enhanced thermal image analyzer using real FLIR extraction and AI detection"""
-    
+
     def __init__(self):
         self.ambient_temp = 34.0
         self.potential_threshold = 20.0  # +20°C above ambient
         self.critical_threshold = 40.0   # +40°C above ambient
-        
+
         # Initialize real AI components
         self.flir_extractor = flir_extractor
         self.ai_detector = production_ai_detector
-        
+
         logger.info("✅ Enhanced thermal analyzer initialized with real AI components")
         
     def analyze_image(self, image_path: str, image_id: str, ambient_temp: Optional[float] = None,
@@ -516,4 +516,4 @@ def create_enhanced_thermal_analyzer():
     return EnhancedThermalAnalyzer()
 
 # Global enhanced analyzer instance
-enhanced_thermal_analyzer = create_enhanced_thermal_analyzer()  
+enhanced_thermal_analyzer = create_enhanced_thermal_analyzer()    

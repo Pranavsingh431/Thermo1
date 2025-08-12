@@ -29,19 +29,19 @@ class ModelLoadingError(Exception):
 class ProductionModelLoader:
     """
     Production-grade model loader with integrity verification.
-    
+
     CRITICAL: Application MUST NOT start if models fail integrity checks.
     """
-    
+
     def __init__(self, models_dir: str = "models"):
         self.models_dir = Path(models_dir)
         self.logger = logging.getLogger(__name__)
         self.loaded_models: Dict[str, Any] = {}
         self.model_metadata: Dict[str, Dict] = {}
-        
+
         # Create models directory if it doesn't exist
         self.models_dir.mkdir(exist_ok=True)
-        
+
         # Model configuration with expected checksums
         self.model_config = {
             "yolo_nas_s": {
@@ -52,31 +52,31 @@ class ProductionModelLoader:
                 "version": "1.0"
             }
         }
-        
+
         self.logger.info("🔒 Production Model Loader initialized")
-    
+
     def verify_model_integrity(self, model_name: str) -> bool:
         """
         Verify model file integrity using SHA256 checksum.
-        
+
         Args:
             model_name: Name of the model to verify
-            
+
         Returns:
             True if integrity check passes
-            
+
         Raises:
             ModelIntegrityError: If integrity check fails
         """
         if model_name not in self.model_config:
             raise ModelIntegrityError(f"Unknown model: {model_name}")
-        
+
         config = self.model_config[model_name]
         model_path = self.models_dir / config["filename"]
-        
+
         if not model_path.exists():
             raise ModelIntegrityError(f"Model file not found: {model_path}")
-        
+
         # Calculate SHA256 checksum
         sha256_hash = hashlib.sha256()
         try:
@@ -84,9 +84,9 @@ class ProductionModelLoader:
                 # Read file in chunks to handle large files
                 for chunk in iter(lambda: f.read(4096), b""):
                     sha256_hash.update(chunk)
-            
+
             calculated_checksum = sha256_hash.hexdigest()
-            
+
             # If this is first time, store the checksum
             if config["expected_sha256"] is None:
                 config["expected_sha256"] = calculated_checksum
@@ -98,7 +98,7 @@ class ProductionModelLoader:
                 })
                 self.logger.info(f"✅ Model {model_name}: Initial checksum stored - {calculated_checksum[:16]}...")
                 return True
-            
+
             # Verify against expected checksum
             if calculated_checksum != config["expected_sha256"]:
                 raise ModelIntegrityError(
@@ -313,4 +313,4 @@ class ProductionModelLoader:
             return True
 
 # Global model loader instance
-model_loader = ProductionModelLoader()                                                                                                                                                                                                                
+model_loader = ProductionModelLoader()                                                                                                                                                                                                                                                                                                                                                                                                                                
