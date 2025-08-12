@@ -354,6 +354,7 @@ class BulletproofAIPipeline:
             "detections": []
         }
 
+
     def _llm_based_detection(self, image_path: str, thermal_data: Dict) -> Dict:
         from app.utils.llm_openrouter import generate_detections_via_llm
         detections = generate_detections_via_llm(image_path, thermal_data)
@@ -369,21 +370,6 @@ class BulletproofAIPipeline:
         }
 
 
-        self.logger.critical("All detection methods failed; returning minimal result")
-        warnings.append("All detection methods failed")
-        processing_steps.append("❌ All detection methods failed")
-        return {
-            "model_source": ModelSource.CRITICAL_FAILURE.value,
-            "model_version": "emergency_fallback_v1.0",
-            "total_components": 0,
-            "component_counts": {
-                "nuts_bolts": 0,
-                "mid_span_joint": 0,
-                "polymer_insulator": 0,
-                "conductor": 0
-            },
-            "detections": []
-        }
     
     def _yolo_nas_detection(self, image_path: str, thermal_data: Dict) -> Dict:
         """YOLOv8 component detection implementation"""
@@ -693,4 +679,4 @@ class BulletproofAIPipeline:
         }
 
 # Global bulletproof pipeline instance
-bulletproof_ai_pipeline = BulletproofAIPipeline()                                                                
+bulletproof_ai_pipeline = BulletproofAIPipeline()                                                                                                
