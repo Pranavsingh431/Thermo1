@@ -19,19 +19,8 @@ python-jose[cryptography]==3.3.0
 python-multipart==0.0.6
 passlib[bcrypt]==1.7.4
 
-# AI/ML Dependencies
-torch==2.1.1
-torchvision==0.16.1
-super-gradients==3.5.0
-ultralytics==8.2.45
-
-opencv-python==4.8.1.78
-Pillow==10.1.0
-numpy==1.22.4
-
-# Image Processing
-opencv-contrib-python==4.8.1.78
-scikit-image==0.22.0
+# AI/ML Dependencies moved to requirements-ai.txt for lazy loading
+# Install with: pip install -r requirements-ai.txt
 
 # HTTP Client
 httpx==0.25.2
@@ -59,4 +48,4 @@ python-json-logger==2.0.7
 watchdog==3.0.0
 
 # Production
-gunicorn==21.2.0  
+gunicorn==21.2.0    

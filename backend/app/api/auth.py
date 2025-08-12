@@ -11,7 +11,7 @@ from typing import Optional
 
 from app.database import get_db
 from app.models.user import User
-from app.utils.auth import authenticate_user, create_access_token, get_current_user
+from app.utils.auth import authenticate_user, create_access_token, get_current_user, create_refresh_token_pair, rotate_refresh_token, verify_refresh_token
 from app.utils.rate_limit import rate_limit
 from app.config import settings
 
@@ -20,7 +20,9 @@ router = APIRouter()
 # Pydantic models for request/response
 class Token(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str
+    requires_2fa: bool = False
 
 class TokenData(BaseModel):
     username: Optional[str] = None
@@ -83,20 +85,55 @@ async def login_for_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
     
-    return {"access_token": access_token, "token_type": "bearer"}
+    # Check if 2FA is required
+    if user.two_factor_enabled:
+        return {
+            "access_token": "",
+            "refresh_token": "",
+            "token_type": "bearer",
+            "requires_2fa": True
+        }
+    
+    device_info = f"{request.headers.get('user-agent', 'unknown')}|{client_ip}" if request else None
+    refresh_token, _ = create_refresh_token_pair(db, user, device_info)
+    
+    return {
+        "access_token": access_token, 
+        "refresh_token": refresh_token,
+        "token_type": "bearer",
+        "requires_2fa": False
+    }
 
 @router.post("/refresh", response_model=Token)
-async def refresh_token(data: RefreshTokenRequest):
-    """Issue a new access token if the provided token is still valid (sliding session)."""
+async def refresh_token(data: RefreshTokenRequest, request: Request = None, db: Session = Depends(get_db)):
+    """Issue new access and refresh tokens using refresh token rotation."""
     try:
-        from app.utils.auth import verify_token
-        username = verify_token(data.token)
-        if not username:
-            raise HTTPException(status_code=401, detail="Invalid token")
-        access_token = create_access_token(data={"sub": username})
-        return {"access_token": access_token, "token_type": "bearer"}
-    except Exception:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        user = verify_refresh_token(db, data.token)
+        if not user:
+            raise HTTPException(status_code=401, detail="Invalid refresh token")
+        
+        client_ip = request.client.host if request and request.client else "unknown"
+        device_info = f"{request.headers.get('user-agent', 'unknown')}|{client_ip}" if request else None
+        
+        new_refresh_token, _ = rotate_refresh_token(db, data.token, device_info)
+        if not new_refresh_token:
+            raise HTTPException(status_code=401, detail="Token rotation failed")
+        
+        # Create new access token
+        access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"sub": user.username}, expires_delta=access_token_expires
+        )
+        
+        return {
+            "access_token": access_token,
+            "refresh_token": new_refresh_token,
+            "token_type": "bearer"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Token refresh failed")
 
 @router.post("/reset-password")
 async def reset_password(req: ResetPasswordRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
@@ -203,4 +240,4 @@ async def activate_user(
 @router.get("/health")
 async def health_check():
     """Health check endpoint"""
-    return {"status": "healthy", "service": "auth"} 
+    return {"status": "healthy", "service": "auth"}      

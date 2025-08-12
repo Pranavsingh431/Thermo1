@@ -19,7 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 
 # Import all API routers
-from app.api import auth, upload, dashboard, reports
+from app.api import auth, upload, dashboard, reports, two_factor
 from app.api.tasks import router as tasks_router
 from app.api.settings import router as settings_router
 from app.api.health import router as health_router
@@ -128,6 +128,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Include all API routers
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
+app.include_router(two_factor.router, prefix="/api/auth/2fa", tags=["Two-Factor Authentication"])
 app.include_router(upload.router, prefix="/api/upload", tags=["File Upload"])
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["Dashboard"])
 app.include_router(reports.router, prefix="/api/reports", tags=["Reports"])
@@ -295,4 +296,4 @@ if settings.ENVIRONMENT == "development":
 
 # Production startup message
 logger.info("🛡️ Bulletproof Thermal Eye system initialized")
-logger.info("🎯 Ready for Tata Power production deployment") 
+logger.info("🎯 Ready for Tata Power production deployment")  

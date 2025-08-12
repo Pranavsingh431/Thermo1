@@ -6,7 +6,7 @@ from sqlalchemy.engine import Connection
 from alembic import context
 import os
 from app.database import Base
-from app.models import user, thermal_scan, ai_analysis, substation
+from app.models import user, thermal_scan, ai_analysis, substation, refresh_token
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

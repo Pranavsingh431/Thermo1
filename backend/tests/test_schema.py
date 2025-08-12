@@ -3,7 +3,7 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import text
 
-os.environ.setdefault("DATABASE_URL", "postgresql://user:password@localhost:5432/thermal_inspection")
+os.environ.setdefault("DATABASE_URL", "sqlite:///./test_thermal_inspection.db")
 
 from app.database import SessionLocal  # noqa: E402
 from app.models.user import User  # noqa: E402
