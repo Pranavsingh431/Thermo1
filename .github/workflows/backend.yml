@@ -1,0 +1,55 @@
+name: Backend CI
+
+on:
+  push:
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend.yml"
+  pull_request:
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend.yml"
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    env:
+      # Ensure CI doesn't try to download models or call external LLMs
+      ENABLE_LLM_FALLBACK: "false"
+      ENABLE_PATTERN_FALLBACK: "false"
+      ALLOW_MODEL_DOWNLOAD: "false"
+      USE_OBJECT_STORAGE: "false"
+      DATABASE_URL: "sqlite:///./test.db"
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-py311-${{ hashFiles('backend/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-py311-
+
+      - name: Install dependencies
+        working-directory: backend
+        run: |
+          python -m pip install -U pip
+          pip install -r requirements.txt
+
+      - name: Lint (flake8)
+        working-directory: backend
+        run: |
+          flake8 .
+
+      - name: Run tests (pytest)
+        working-directory: backend
+        run: |
+          pytest -q
