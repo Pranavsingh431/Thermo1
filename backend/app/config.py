@@ -10,15 +10,22 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "thermal-inspection-secret-key-change-in-production"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 30
     
     # CORS
-    ALLOWED_ORIGINS: List[str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
+    ALLOWED_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000"
+    
+    @property
+    def allowed_origins_list(self) -> List[str]:
+        """Parse ALLOWED_ORIGINS string into list"""
+        return [origin.strip() for origin in self.ALLOWED_ORIGINS.split(",")]
     
     # File Upload
     MAX_FILE_SIZE: int = 50 * 1024 * 1024  # 50MB
     ALLOWED_IMAGE_TYPES: List[str] = [".jpg", ".jpeg", ".png", ".tiff", ".bmp"]
     UPLOAD_DIR: str = "static/thermal_images"
     PROCESSED_DIR: str = "static/processed_images"
+    REPORTS_DIR: str = "static/reports"
     
     # Thermal Analysis
     AMBIENT_TEMPERATURE: float = 34.0
@@ -83,4 +90,4 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
 
-settings = Settings()        
+settings = Settings()                                                

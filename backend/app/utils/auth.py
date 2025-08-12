@@ -3,7 +3,7 @@ Authentication utilities
 """
 
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Tuple
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
@@ -39,6 +39,88 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
+
+def create_refresh_token_pair(db: Session, user: User, device_info: str = None) -> Tuple[str, str]:
+    """Create a new refresh token with family rotation support"""
+    from app.models.refresh_token import RefreshToken
+    
+    token = RefreshToken.generate_token()
+    family_id = RefreshToken.generate_family_id()
+    
+    refresh_token = RefreshToken(
+        token=token,
+        family_id=family_id,
+        user_id=user.id,
+        expires_at=datetime.utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
+        device_info=device_info
+    )
+    
+    db.add(refresh_token)
+    db.commit()
+    
+    return token, family_id
+
+def rotate_refresh_token(db: Session, old_token: str, device_info: str = None) -> Optional[Tuple[str, str]]:
+    """Rotate refresh token using family-based approach"""
+    from app.models.refresh_token import RefreshToken
+    
+    old_refresh_token = db.query(RefreshToken).filter(
+        RefreshToken.token == old_token,
+        RefreshToken.is_revoked == False
+    ).first()
+    
+    if not old_refresh_token or not old_refresh_token.is_valid():
+        if old_refresh_token:
+            revoke_token_family(db, old_refresh_token.family_id)
+        return None
+    
+    # Update last used
+    old_refresh_token.last_used = datetime.utcnow()
+    
+    new_token = RefreshToken.generate_token()
+    
+    new_refresh_token = RefreshToken(
+        token=new_token,
+        family_id=old_refresh_token.family_id,  # Same family
+        user_id=old_refresh_token.user_id,
+        expires_at=datetime.utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
+        device_info=device_info
+    )
+    
+    old_refresh_token.revoke()
+    
+    db.add(new_refresh_token)
+    db.commit()
+    
+    return new_token, old_refresh_token.family_id
+
+def revoke_token_family(db: Session, family_id: str) -> None:
+    """Revoke all tokens in a family (security measure)"""
+    from app.models.refresh_token import RefreshToken
+    
+    tokens = db.query(RefreshToken).filter(
+        RefreshToken.family_id == family_id,
+        RefreshToken.is_revoked == False
+    ).all()
+    
+    for token in tokens:
+        token.revoke()
+    
+    db.commit()
+
+def verify_refresh_token(db: Session, token: str) -> Optional[User]:
+    """Verify refresh token and return associated user"""
+    from app.models.refresh_token import RefreshToken
+    
+    refresh_token = db.query(RefreshToken).filter(
+        RefreshToken.token == token,
+        RefreshToken.is_revoked == False
+    ).first()
+    
+    if not refresh_token or not refresh_token.is_valid():
+        return None
+    
+    return refresh_token.user
 
 def verify_token(token: str) -> Optional[str]:
     """Verify a JWT token and return the username"""
@@ -131,4 +213,4 @@ def require_permission(permission: str):
                 detail="Full data access required"
             )
         return current_user
-    return permission_checker 
+    return permission_checker  

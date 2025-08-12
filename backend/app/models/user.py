@@ -42,8 +42,13 @@ class User(Base):
     # Notes for admin
     notes = Column(Text)
     
+    two_factor_secret = Column(String(32))  # Base32 encoded TOTP secret
+    two_factor_enabled = Column(Boolean, default=False, nullable=False)
+    backup_codes = Column(Text)  # JSON array of backup codes
+    
     # Relationships
     thermal_scans = relationship("ThermalScan", back_populates="uploaded_by_user")
+    refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
     
     # Database indexes for performance
     __table_args__ = (
@@ -81,4 +86,4 @@ class User(Base):
         return self.role in ["admin", "engineer"]
     
     def __repr__(self):
-        return f"<User(id={self.id}, username='{self.username}', role='{self.role}')>" 
+        return f"<User(id={self.id}, username='{self.username}', role='{self.role}')>"  
