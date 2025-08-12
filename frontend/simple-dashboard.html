@@ -303,7 +303,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>🔥 Thermal Inspection System</h1>
+        <h1>Thermal Inspection System</h1>
         <div class="subtitle">AI-powered thermal analysis for transmission lines</div>
         <div class="user-info" id="userInfo" style="display: none;">
             <span id="userName"></span>
@@ -336,12 +336,12 @@
             <!-- Statistics Cards -->
             <div class="stats-grid" id="statsGrid">
                 <div class="stat-card">
-                    <div class="icon">📸</div>
+                    <div class="icon">📊</div>
                     <div class="value" id="totalImages">-</div>
                     <div class="label">Total Images</div>
                 </div>
                 <div class="stat-card">
-                    <div class="icon">🔥</div>
+                    <div class="icon">⚠️</div>
                     <div class="value" id="criticalIssues">-</div>
                     <div class="label">Critical Issues</div>
                 </div>
@@ -351,7 +351,7 @@
                     <div class="label">Substations</div>
                 </div>
                 <div class="stat-card">
-                    <div class="icon">⚡</div>
+                    <div class="icon">📋</div>
                     <div class="value" id="activeBatches">-</div>
                     <div class="label">Active Batches</div>
                 </div>
@@ -359,9 +359,9 @@
 
             <!-- File Upload Section -->
             <div class="card">
-                <h3>🚀 Upload Thermal Images</h3>
-                <div class="upload-section" id="uploadSection" 
-                     ondrop="dropHandler(event)" 
+                <h3>Upload Thermal Images</h3>
+                <div class="upload-section" id="uploadSection"
+                     ondrop="dropHandler(event)"
                      ondragover="dragOverHandler(event)"
                      ondragleave="dragLeaveHandler(event)">
                     <div>
@@ -384,7 +384,7 @@
 
             <!-- Recent Analyses -->
             <div class="card">
-                <h3>🔍 Recent Analyses</h3>
+                <h3>Recent Analyses</h3>
                 <div id="recentAnalyses">
                     <div class="loading">
                         <div class="spinner"></div>
@@ -395,7 +395,7 @@
 
             <!-- Substations Overview -->
             <div class="card">
-                <h3>🏭 Substations Overview</h3>
+                <h3>Substations Overview</h3>
                 <div id="substationsOverview">
                     <div class="loading">
                         <div class="spinner"></div>
@@ -552,7 +552,7 @@
 
                 if (response.ok) {
                     const analyses = await response.json();
-                    
+
                     if (analyses.length === 0) {
                         container.innerHTML = '<p>No analyses yet. Upload some thermal images to get started!</p>';
                     } else {
@@ -573,7 +573,7 @@
                 }
             } catch (error) {
                 console.error('Failed to load recent analyses:', error);
-                document.getElementById('recentAnalyses').innerHTML = 
+                document.getElementById('recentAnalyses').innerHTML =
                     '<div class="alert error">Network error loading analyses</div>';
             }
         }
@@ -590,7 +590,7 @@
 
                 if (response.ok) {
                     const substations = await response.json();
-                    
+
                     if (substations.length === 0) {
                         container.innerHTML = '<p>No substations configured.</p>';
                     } else {
@@ -614,7 +614,7 @@
                 }
             } catch (error) {
                 console.error('Failed to load substations:', error);
-                document.getElementById('substationsOverview').innerHTML = 
+                document.getElementById('substationsOverview').innerHTML =
                     '<div class="alert error">Network error loading substations</div>';
             }
         }
@@ -645,12 +645,12 @@
             }
 
             const formData = new FormData();
-            
+
             // Add files
             for (let i = 0; i < files.length; i++) {
                 formData.append('files', files[i]);
             }
-            
+
             // Add metadata
             formData.append('ambient_temperature', '34.0');
             formData.append('notes', 'Web dashboard upload');
@@ -677,7 +677,7 @@
                 if (response.ok) {
                     const result = await response.json();
                     currentBatchId = result.batch_id;
-                    
+
                     progressFill.style.width = '100%';
                     statusDiv.innerHTML = `
                         <div class="alert success">
@@ -688,7 +688,7 @@
 
                     // Monitor batch processing
                     monitorBatch(result.batch_id);
-                    
+
                     // Refresh dashboard
                     setTimeout(() => {
                         loadDashboard();
@@ -720,17 +720,17 @@
 
                     if (response.ok) {
                         const status = await response.json();
-                        
+
                         const statusHtml = `
                             <div class="alert info">
                                 <strong>Batch Processing Status:</strong> ${status.status}<br>
-                                Total: ${status.total_images}, 
-                                Processed: ${status.processed_images}, 
+                                Total: ${status.total_images},
+                                Processed: ${status.processed_images},
                                 Failed: ${status.failed_images}
                                 ${status.processing_duration ? `<br>Duration: ${status.processing_duration}` : ''}
                             </div>
                         `;
-                        
+
                         statusDiv.innerHTML = statusHtml;
 
                         if (status.status === 'completed' || status.status === 'failed') {
@@ -756,9 +756,9 @@
             const alertDiv = document.createElement('div');
             alertDiv.className = `alert ${type}`;
             alertDiv.textContent = message;
-            
+
             document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.container').firstChild);
-            
+
             setTimeout(() => {
                 alertDiv.remove();
             }, 5000);
@@ -772,4 +772,4 @@
         }, 30000);
     </script>
 </body>
-</html> 
+</html>

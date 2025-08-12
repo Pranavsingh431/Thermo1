@@ -64,7 +64,7 @@ const Reports = () => {
 
   return (
     <div style={{ padding: '24px' }}>
-      <Title level={2}>📊 Reports & Operations</Title>
+      <Title level={2}>Reports & Operations</Title>
       <Card style={{ marginBottom: 16 }} title="Background Task Runs">
         <Table rowKey={(r) => `${r.task_id}-${r.started_at}`} loading={loading} columns={columnsRuns} dataSource={taskRuns} pagination={{ pageSize: 10 }} />
       </Card>

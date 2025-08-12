@@ -122,7 +122,7 @@ const Dashboard = () => {
   return (
     <div style={{ padding: '24px' }}>
       <Title level={2} style={{ marginBottom: '24px' }}>
-        🔥 Thermal Inspection Dashboard
+        Thermal Inspection Dashboard
       </Title>
 
       {/* Statistics Cards */}
@@ -182,7 +182,7 @@ const Dashboard = () => {
       <Row gutter={[16, 16]}>
         {/* Upload Section */}
         <Col xs={24} lg={12}>
-          <Card title="🚀 Upload Thermal Images" style={{ height: '400px' }}>
+          <Card title="Upload Thermal Images" style={{ height: '400px' }}>
             <Dragger
               {...uploadProps}
               style={{ height: '200px' }}
@@ -220,7 +220,7 @@ const Dashboard = () => {
 
         {/* Recent Analyses */}
         <Col xs={24} lg={12}>
-          <Card title="🔍 Recent Analyses" style={{ height: '400px' }}>
+          <Card title="Recent Analyses" style={{ height: '400px' }}>
             <List
               loading={analysesLoading}
               dataSource={analyses || []}
@@ -244,7 +244,7 @@ const Dashboard = () => {
                         </Text>
                         {item.substation_name && (
                           <div>
-                            <Text type="secondary">📍 {item.substation_name}</Text>
+                            <Text type="secondary">{item.substation_name}</Text>
                           </div>
                         )}
                       </div>
@@ -260,7 +260,7 @@ const Dashboard = () => {
       {/* Substations Overview */}
       <Row style={{ marginTop: '24px' }}>
         <Col span={24}>
-          <Card title="🏭 Substations Overview">
+          <Card title="Substations Overview">
             <Row gutter={[16, 16]}>
               {substationsLoading && <Col span={24}><Text>Loading substations...</Text></Col>}
               {substations?.map((substation) => (
