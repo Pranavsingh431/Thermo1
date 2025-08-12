@@ -18,7 +18,7 @@ from app.models.substation import Substation
 def create_test_data():
     """Create test users and substations"""
     print("🔧 Creating test data...")
-    
+
     db = SessionLocal()
     
     try:
@@ -34,7 +34,7 @@ def create_test_data():
         )
         admin_user.set_password("admin123")
         db.add(admin_user)
-        
+
         # Create engineer user
         engineer_user = User(
             username="engineer",
@@ -47,7 +47,7 @@ def create_test_data():
         )
         engineer_user.set_password("engineer123")
         db.add(engineer_user)
-        
+
         # Create operator user
         operator_user = User(
             username="operator",
@@ -60,7 +60,7 @@ def create_test_data():
         )
         operator_user.set_password("operator123")
         db.add(operator_user)
-        
+
         # Create Salsette Camp substation
         salsette_substation = Substation(
             name="Salsette Camp Substation",
@@ -75,7 +75,7 @@ def create_test_data():
             control_room_phone="+91-22-1234567"
         )
         db.add(salsette_substation)
-        
+
         # Create additional Mumbai substations
         mumbai_substations = [
             {
@@ -87,7 +87,7 @@ def create_test_data():
                 "address": "Versova, Mumbai, Maharashtra"
             },
             {
-                "name": "Bandra Substation", 
+                "name": "Bandra Substation",
                 "code": "BANDRA",
                 "voltage_level": "400kV",
                 "latitude": 19.0596,
@@ -96,14 +96,14 @@ def create_test_data():
             },
             {
                 "name": "Powai Substation",
-                "code": "POWAI", 
+                "code": "POWAI",
                 "voltage_level": "220kV",
                 "latitude": 19.1197,
                 "longitude": 72.9058,
                 "address": "Powai, Mumbai, Maharashtra"
             }
         ]
-        
+
         for sub_data in mumbai_substations:
             substation = Substation(
                 name=sub_data["name"],
@@ -118,20 +118,20 @@ def create_test_data():
                 control_room_phone="+91-22-1234567"
             )
             db.add(substation)
-        
+
         db.commit()
-        
+
         print("✅ Test data created successfully!")
         print("\n📋 Test Users Created:")
         print("👤 Admin: username='admin', password='admin123'")
-        print("👤 Engineer: username='engineer', password='engineer123'") 
+        print("👤 Engineer: username='engineer', password='engineer123'")
         print("👤 Operator: username='operator', password='operator123'")
         print("\n🏭 Substations Created:")
         print("🔌 Salsette Camp Substation")
         print("🔌 Versova Substation")
         print("🔌 Bandra Substation")
         print("🔌 Powai Substation")
-        
+
     except Exception as e:
         print(f"❌ Error creating test data: {e}")
         db.rollback()
@@ -142,4 +142,4 @@ if __name__ == "__main__":
     print("🚀 Initializing Thermal Inspection System Database...")
     init_db()
     create_test_data()
-    print("\n🎉 Ready for testing!") 
+    print("\n🎉 Ready for testing!")  

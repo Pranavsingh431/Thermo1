@@ -52,7 +52,7 @@ class DefectType:
 
 class ComponentDetection:
     """Single component detection result"""
-    def __init__(self, component_type: str, confidence: float, bbox: List[int], 
+    def __init__(self, component_type: str, confidence: float, bbox: List[int],
                  max_temperature: float = 0.0, center: Optional[List[int]] = None):
         self.component_type = component_type
         self.confidence = confidence
@@ -66,11 +66,10 @@ class ComponentDetection:
 class RealAIComponentDetector:
     """
     Real AI-based component detector for transmission line equipment
-    
+
     This replaces the mock detection system with actual YOLO-NAS inference
     specifically optimized for electrical transmission components.
     """
-    
     def __init__(self, device: str = None):
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         self.logger = logging.getLogger(__name__)
@@ -79,12 +78,10 @@ class RealAIComponentDetector:
         self.yolo_model = None
         self.quality_model = None
         self.defect_classifier = None
-        
         # Detection parameters
         self.confidence_threshold = 0.3
         self.nms_threshold = 0.5
         self.max_detections = 100
-        
         # Component mapping for transmission equipment
         self.component_mapping = {
             # Map COCO classes to transmission components
@@ -156,20 +153,17 @@ class RealAIComponentDetector:
                 self.logger.info("✅ YOLO-NAS model loaded successfully")
             else:
                 self.logger.warning("⚠️ YOLO-NAS not available, using fallback detection")
-            
             if TORCH_AVAILABLE:
                 # Load MobileNetV3 for quality assessment
                 self.quality_model = torchvision_models.mobilenet_v3_small(pretrained=True)
                 self.quality_model = self.quality_model.to(self.device)
                 self.quality_model.eval()
                 self.logger.info("✅ Quality assessment model loaded")
-                
                 # Load EfficientNet for defect classification (simplified version)
                 self.defect_classifier = torchvision_models.efficientnet_b0(pretrained=True)
                 self.defect_classifier = self.defect_classifier.to(self.device)
                 self.defect_classifier.eval()
                 self.logger.info("✅ Defect classification model loaded")
-            
         except Exception as e:
             self.logger.error(f"Failed to load AI models: {e}")
             self.yolo_model = None
@@ -189,7 +183,6 @@ class RealAIComponentDetector:
         """
         try:
             start_time = time.time()
-            
             # Load and preprocess image
             image = self._load_and_preprocess_image(image_path)
             if image is None:
@@ -197,17 +190,14 @@ class RealAIComponentDetector:
             
             # Run component detection
             detections = []
-            
             if self.yolo_model is not None:
                 # Use real YOLO-NAS detection
                 detections = self._yolo_detection(image)
             else:
                 # Use enhanced pattern-based detection as fallback
                 detections = self._pattern_based_detection(image)
-            
             # Apply transmission-specific filtering
             filtered_detections = self._filter_transmission_components(detections, image.shape)
-            
             # Enhance detections with thermal analysis
             if temperature_map is not None:
                 enhanced_detections = self._enhance_with_thermal_analysis(
@@ -215,7 +205,6 @@ class RealAIComponentDetector:
                 )
             else:
                 enhanced_detections = filtered_detections
-            
             # Add defect classification
             final_detections = self._classify_defects(enhanced_detections, image)
             
@@ -529,4 +518,4 @@ class RealAIComponentDetector:
             return detections
 
 # Global detector instance
-real_ai_detector = RealAIComponentDetector() 
+real_ai_detector = RealAIComponentDetector()  

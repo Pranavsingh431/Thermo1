@@ -49,14 +49,12 @@ logger = logging.getLogger(__name__)
 
 class ThermalInspectionReport:
     """Professional thermal inspection report for Tata Power"""
-    
     def __init__(self, analysis: AIAnalysis, scan: ThermalScan, substation: Optional[Substation] = None):
         self.analysis = analysis
         self.scan = scan
         self.substation = substation
         self.report_id = f"TIR_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{scan.id}"
         self.generation_timestamp = datetime.now()
-        
     def to_dict(self) -> Dict[str, Any]:
         """Convert report to dictionary format"""
         return {
@@ -103,12 +101,10 @@ class ThermalInspectionReport:
 
 class IntelligentReportGenerator:
     """Generate intelligent thermal inspection reports"""
-    
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         self.output_dir = Path("static/reports")
         self.output_dir.mkdir(exist_ok=True)
-        
     async def generate_comprehensive_report(self, analysis: AIAnalysis, db: Session, *, include_pdf: bool = False, include_llm: bool = False) -> Dict[str, Any]:
         """Generate a comprehensive thermal inspection report"""
         try:
@@ -116,10 +112,8 @@ class IntelligentReportGenerator:
             scan = analysis.thermal_scan
             substation = scan.substation if scan else None
             detections = analysis.detections
-            
             # Create report object
             report = ThermalInspectionReport(analysis, scan, substation)
-            
             # Generate different report formats
             report_data = {
                 'report_id': report.report_id,
@@ -139,37 +133,30 @@ class IntelligentReportGenerator:
             json_report = await self._generate_json_report(report, detections, thermo_result, visuals, comparative)
             report_data['json_report'] = json_report
             report_data['formats_generated'].append('json')
-            
             # 2. Generate professional text summary
             text_summary = await self._generate_professional_summary(report, detections, thermo_result, comparative)
             report_data['professional_summary'] = text_summary
             report_data['formats_generated'].append('text')
-            
             # 3. Generate technical analysis
             technical_analysis = await self._generate_technical_analysis(report, detections, thermo_result, comparative)
             report_data['technical_analysis'] = technical_analysis
             report_data['formats_generated'].append('technical')
-            
             # 4. Generate PDF if available and requested
             if include_pdf and REPORTLAB_AVAILABLE:
                 pdf_path = await self._generate_pdf_report(report, detections, thermo_result, visuals, comparative)
                 report_data['pdf_path'] = str(pdf_path)
                 report_data['formats_generated'].append('pdf')
-            
             # 5. Generate LLM-enhanced report via OpenRouter when requested and configured
             if include_llm and LLM_AVAILABLE:
                 llm_report = await self._generate_llm_enhanced_report(report, detections)
                 report_data['llm_enhanced_summary'] = llm_report
                 report_data['formats_generated'].append('llm')
-            
             # 6. Generate email-ready summary
             email_summary = await self._generate_email_summary(report, detections)
             report_data['email_summary'] = email_summary
             report_data['formats_generated'].append('email')
-            
             self.logger.info(f"✅ Comprehensive report generated: {report.report_id}")
             return report_data
-            
         except Exception as e:
             self.logger.error(f"Failed to generate comprehensive report: {e}")
             return {
@@ -318,7 +305,6 @@ class IntelligentReportGenerator:
         """Generate structured JSON report"""
         try:
             json_data = report.to_dict()
-            
             # Add detailed detections
             json_data['detailed_detections'] = []
             for detection in detections:
@@ -345,7 +331,6 @@ class IntelligentReportGenerator:
                     }
                 }
                 json_data['detailed_detections'].append(detection_data)
-            
             # Add thermographic metrics (if computed)
             json_data['thermographic_metrics'] = {}
             if thermo:

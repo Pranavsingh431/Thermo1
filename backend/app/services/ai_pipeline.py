@@ -44,73 +44,73 @@ class ThermalAnalysisResult:
         self.is_good_quality: bool = True
         self.quality_score: float = 0.0
         self.processing_time: float = 0.0
-        
+
         # Temperature analysis
         self.ambient_temperature: float = 34.0
         self.max_temperature: float = 34.0
         self.min_temperature: float = 34.0
         self.avg_temperature: float = 34.0
-        
+
         # Hotspot detection
         self.total_hotspots: int = 0
         self.critical_hotspots: int = 0
         self.potential_hotspots: int = 0
-        
+
         # Component detection
         self.total_components: int = 0
         self.nuts_bolts_count: int = 0
         self.mid_span_joints_count: int = 0
         self.polymer_insulators_count: int = 0
-        
+
         # Risk assessment
         self.overall_risk_level: str = "low"
         self.risk_score: float = 0.0
         self.requires_immediate_attention: bool = False
         self.summary_text: str = ""
-        
+
         # Detections
         self.detections: List[Dict] = []
 
 class LightweightThermalAnalyzer:
     """Lightweight thermal image analyzer using basic image processing"""
-    
+
     def __init__(self):
         self.ambient_temp = 34.0
         self.potential_threshold = 20.0  # +20°C above ambient
         self.critical_threshold = 40.0   # +40°C above ambient
-        
+
     def analyze_image(self, image_path: str, image_id: str) -> ThermalAnalysisResult:
         """Analyze thermal image using lightweight methods"""
         start_time = time.time()
         result = ThermalAnalysisResult()
-        
+
         try:
             result.image_id = image_id
             result.image_path = image_path
-            
+
             # Load image with PIL
             with Image.open(image_path) as img:
                 # Convert to RGB if needed
                 if img.mode != 'RGB':
                     img = img.convert('RGB')
-                
+
                 # Basic image analysis
                 result.quality_score = self._assess_image_quality(img)
                 result.is_good_quality = result.quality_score > 0.5
-                
+
                 # Thermal analysis using color information
                 thermal_data = self._analyze_thermal_colors(img)
                 
                 result.max_temperature = thermal_data['max_temp']
-                result.min_temperature = thermal_data['min_temp'] 
+                result.min_temperature = thermal_data['min_temp']
                 result.avg_temperature = thermal_data['avg_temp']
-                
+
                 # Hotspot detection
                 hotspots = self._detect_hotspots(thermal_data)
                 result.total_hotspots = hotspots['total']
                 result.critical_hotspots = hotspots['critical']
                 result.potential_hotspots = hotspots['potential']
-                
+
                 # Mock component detection (until ML models available)
                 components = self._mock_component_detection(img)
                 result.total_components = components['total']
@@ -346,4 +346,4 @@ def create_thermal_analyzer() -> ThermalAnalysisResult:
     return LightweightThermalAnalyzer()
 
 # Global analyzer instance
-thermal_analyzer = create_thermal_analyzer() 
+thermal_analyzer = create_thermal_analyzer()  

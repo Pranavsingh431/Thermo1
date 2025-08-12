@@ -19,14 +19,12 @@ async def get_ai_analysis(analysis_id: int):
     from sqlalchemy.orm import Session
     from app.database import get_db
     from app.models.ai_analysis import AIAnalysis
-    
     db = next(get_db())
     try:
         analysis = db.query(AIAnalysis).filter(AIAnalysis.id == analysis_id).first()
         if not analysis:
             from fastapi import HTTPException
             raise HTTPException(status_code=404, detail="AI analysis not found")
-        
         return {
             "id": analysis.id,
             "model_version": analysis.model_version,
@@ -46,7 +44,6 @@ async def get_detections(ai_analysis_id: int):
     from sqlalchemy.orm import Session
     from app.database import get_db
     from app.models.ai_analysis import Detection
-    
     db = next(get_db())
     try:
         detections = db.query(Detection).filter(Detection.ai_analysis_id == ai_analysis_id).all()
@@ -62,4 +59,4 @@ async def get_detections(ai_analysis_id: int):
             for det in detections
         ]
     finally:
-        db.close() 
+        db.close()  

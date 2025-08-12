@@ -6,28 +6,23 @@ import os
 class Settings(BaseSettings):
     # Database - standardized on PostgreSQL
     DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://user:password@localhost:5432/thermal_inspection")
-    
     # JWT
     SECRET_KEY: str = "thermal-inspection-secret-key-change-in-production"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 30
-    
     # CORS
     ALLOWED_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000"
-    
     @property
     def allowed_origins_list(self) -> List[str]:
         """Parse ALLOWED_ORIGINS string into list"""
         return [origin.strip() for origin in self.ALLOWED_ORIGINS.split(",")]
-    
     # File Upload
     MAX_FILE_SIZE: int = 50 * 1024 * 1024  # 50MB
     ALLOWED_IMAGE_TYPES: List[str] = [".jpg", ".jpeg", ".png", ".tiff", ".bmp"]
     UPLOAD_DIR: str = "static/thermal_images"
     PROCESSED_DIR: str = "static/processed_images"
     REPORTS_DIR: str = "static/reports"
-    
     # Thermal Analysis
     AMBIENT_TEMPERATURE: float = 34.0
     POTENTIAL_HOTSPOT_THRESHOLD: float = 20.0  # +20°C above ambient
@@ -52,16 +47,13 @@ class Settings(BaseSettings):
 
     # Observability
     SENTRY_DSN: str = os.getenv("SENTRY_DSN", "")
-    
     # Email Configuration (for Gmail notifications)
     SMTP_SERVER: str = "smtp.gmail.com"
     SMTP_PORT: int = 587
     SMTP_USERNAME: str = "singhpranav431@gmail.com"  # User's Gmail
     SMTP_PASSWORD: str = ""  # Will be set via env var - use app password
-    
     # Notification settings
     CHIEF_ENGINEER_EMAIL: str = "singhpranav431@gmail.com"  # Using user's email for testing
-    
     # OpenRouter / LLM
     OPEN_ROUTER_KEY: str = ""
     OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
@@ -79,15 +71,12 @@ class Settings(BaseSettings):
     # Logging
     LOG_LEVEL: str = "INFO"
     LOG_FORMAT: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    
     # Production Settings
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
-    
     # Mumbai Salsette Substation Coordinates (for testing)
     SALSETTE_CAMP_LAT: float = 19.1262
     SALSETTE_CAMP_LON: float = 72.8897
-    
     model_config = ConfigDict(env_file=".env", extra="ignore")
 
-settings = Settings()                                                
+settings = Settings()                                                                                                

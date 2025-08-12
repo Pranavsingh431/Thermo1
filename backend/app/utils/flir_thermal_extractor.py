@@ -21,13 +21,11 @@ logger = logging.getLogger(__name__)
 
 class FLIRThermalExtractor:
     """Extract thermal temperature data from FLIR thermal images"""
-    
     def __init__(self):
         # FLIR T560 specific parameters
         self.camera_model = "FLIR T560"
         self.thermal_sensitivity = 0.03  # °C at 30°C
         self.temperature_range = (-40, 150)  # °C
-        
         # Common FLIR EXIF tags for thermal data
         self.flir_tags = {
             'PlanckR1': 21106.77,
@@ -53,7 +51,6 @@ class FLIRThermalExtractor:
     def extract_thermal_data(self, image_path: str, overrides: Optional[Dict[str, float]] = None) -> Dict[str, Any]:
         """
         Extract comprehensive thermal data from FLIR image
-        
         Returns:
             Dict containing thermal parameters, temperature map, and statistics
         """
@@ -61,7 +58,6 @@ class FLIRThermalExtractor:
             # Load image and extract EXIF data
             with Image.open(image_path) as img:
                 exif_data = self._extract_exif_data(img)
-                
                 # Extract FLIR-specific thermal parameters
                 thermal_params = self._extract_flir_parameters(exif_data)
                 # Apply calibration overrides if provided
@@ -69,19 +65,14 @@ class FLIRThermalExtractor:
                     for key in ("emissivity", "reflected_temp", "atmospheric_temp", "distance", "humidity"):
                         if key in overrides and overrides[key] is not None:
                             thermal_params[key] = float(overrides[key])
-                
                 # Convert image to numpy array for processing
                 img_array = np.array(img.convert('RGB'))
-                
                 # Extract temperature map from thermal data
                 temperature_map = self._extract_temperature_map(img_array, thermal_params)
-                
                 # Calculate thermal statistics
                 thermal_stats = self._calculate_thermal_statistics(temperature_map, thermal_params)
-                
                 # Detect hotspots using advanced algorithms
                 hotspot_analysis = self._analyze_hotspots(temperature_map, thermal_params)
-                
                 return {
                     'success': True,
                     'thermal_params': thermal_params,
@@ -91,7 +82,6 @@ class FLIRThermalExtractor:
                     'image_shape': img_array.shape,
                     'camera_model': thermal_params.get('camera_model', self.camera_model)
                 }
-                
         except Exception as e:
             logger.error(f"Failed to extract thermal data from {image_path}: {e}")
             return {
@@ -103,20 +93,16 @@ class FLIRThermalExtractor:
     def _extract_exif_data(self, img: Image.Image) -> Dict[str, Any]:
         """Extract EXIF data from FLIR image"""
         exif_data = {}
-        
         try:
             exif = img.getexif()
-            
             for tag_id, value in exif.items():
                 tag = TAGS.get(tag_id, tag_id)
                 exif_data[tag] = value
-                
             # Look for FLIR-specific thermal data in EXIF
             if hasattr(img, '_getexif') and img._getexif():
                 for key, value in img._getexif().items():
                     tag_name = TAGS.get(key, key)
                     exif_data[tag_name] = value
-            
             return exif_data
             
         except Exception as e:
@@ -404,4 +390,4 @@ class FLIRThermalExtractor:
             }
 
 # Global instance
-flir_extractor = FLIRThermalExtractor() 
+flir_extractor = FLIRThermalExtractor()  

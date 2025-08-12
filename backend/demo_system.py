@@ -21,13 +21,11 @@ BASE_URL = "http://127.0.0.1:8000"
 def demo_login():
     """Demo user authentication"""
     print("🔐 Testing User Authentication...")
-    
     # Login as engineer
     login_data = {
         "username": "engineer",
         "password": "engineer123"
     }
-    
     response = requests.post(f"{BASE_URL}/api/auth/login", data=login_data)
     if response.status_code == 200:
         token_data = response.json()
@@ -41,11 +39,8 @@ def demo_login():
 def demo_user_info(token):
     """Demo getting user information"""
     print("\n👤 Getting User Information...")
-    
     headers = {"Authorization": f"Bearer {token}"}
-    response = requests.get(f"{BASE_URL}/api/auth/me", headers=headers)
-    
-    if response.status_code == 200:
+    response = requests.get(f"{BASE_URL}/api/auth/me", headers=headers)if response.status_code == 200:
         user_data = response.json()
         print(f"✅ User: {user_data['full_name']} ({user_data['role']})")
         print(f"   Department: {user_data['department']}")
@@ -58,11 +53,8 @@ def demo_user_info(token):
 def demo_dashboard_stats(token):
     """Demo dashboard statistics"""
     print("\n📊 Getting Dashboard Statistics...")
-    
     headers = {"Authorization": f"Bearer {token}"}
-    response = requests.get(f"{BASE_URL}/api/dashboard/stats", headers=headers)
-    
-    if response.status_code == 200:
+    response = requests.get(f"{BASE_URL}/api/dashboard/stats", headers=headers)if response.status_code == 200:
         stats = response.json()
         print("✅ Dashboard Stats:")
         print(f"   📸 Total Images: {stats['total_images_processed']}")
@@ -77,11 +69,8 @@ def demo_dashboard_stats(token):
 def demo_substations(token):
     """Demo substation information"""
     print("\n🏭 Getting Substation Information...")
-    
     headers = {"Authorization": f"Bearer {token}"}
-    response = requests.get(f"{BASE_URL}/api/dashboard/substations", headers=headers)
-    
-    if response.status_code == 200:
+    response = requests.get(f"{BASE_URL}/api/dashboard/substations", headers=headers)if response.status_code == 200:
         substations = response.json()
         print(f"✅ Found {len(substations)} substations:")
         for sub in substations:
@@ -95,31 +84,23 @@ def demo_substations(token):
 def demo_upload_thermal_images(token):
     """Demo thermal image upload (mock)"""
     print("\n📁 Testing File Upload System...")
-    
     # Check if we have any FLIR images to upload
     salsette_dir = Path("../Salsette camp")
     flir_images = []
-    
     if salsette_dir.exists():
         flir_images = list(salsette_dir.glob("FLIR*.jpg"))[:3]  # Take first 3 images
-    
     if not flir_images:
         print("📝 No FLIR images found - simulating upload...")
         print("✅ Upload system ready (would process real FLIR images)")
         return True
-    
-    print(f"📸 Found {len(flir_images)} FLIR images for testing")
-    
-    # Prepare files for upload
+    print(f"📸 Found {len(flir_images)} FLIR images for testing")# Prepare files for upload
     files = []
     headers = {"Authorization": f"Bearer {token}"}
     
     try:
         for img_path in flir_images:
             with open(img_path, 'rb') as f:
-                files.append(('files', (img_path.name, f.read(), 'image/jpeg')))
-        
-        # Upload files
+                files.append(('files', (img_path.name, f.read(), 'image/jpeg')))# Upload files
         print("🚀 Uploading thermal images...")
         response = requests.post(
             f"{BASE_URL}/api/upload/thermal-images",
@@ -127,7 +108,6 @@ def demo_upload_thermal_images(token):
             data={"ambient_temperature": "34.0", "notes": "Demo upload"},
             headers=headers
         )
-        
         if response.status_code == 200:
             upload_result = response.json()
             print("✅ Upload successful!")
@@ -138,7 +118,6 @@ def demo_upload_thermal_images(token):
         else:
             print(f"❌ Upload failed: {response.status_code} - {response.text}")
             return None
-            
     except Exception as e:
         print(f"❌ Upload error: {e}")
         return None
@@ -147,11 +126,8 @@ def demo_batch_status(token, batch_id):
     """Demo batch processing status"""
     if not batch_id:
         return
-    
-    print(f"\n⏳ Checking Batch Status: {batch_id}")
-    
     headers = {"Authorization": f"Bearer {token}"}
-    
+
     for attempt in range(5):
         response = requests.get(f"{BASE_URL}/api/upload/batch/{batch_id}/status", headers=headers)
         
@@ -161,7 +137,6 @@ def demo_batch_status(token, batch_id):
             print(f"   Total: {status_data['total_images']}")
             print(f"   Processed: {status_data['processed_images']}")
             print(f"   Failed: {status_data['failed_images']}")
-            
             if status_data['status'] in ['completed', 'failed']:
                 break
             else:
@@ -266,4 +241,4 @@ if __name__ == "__main__":
     if success:
         print(f"\n🌐 Access the system at: {BASE_URL}/api/docs")
     else:
-        print("\n❌ Demo failed. Please check the server and try again.") 
+        print("\n❌ Demo failed. Please check the server and try again.")    

@@ -13,10 +13,10 @@ from .app_setting import AppSetting
 __all__ = [
     "User",
     "RefreshToken",
-    "Substation", 
+    "Substation",
     "ThermalScan",
     "AIAnalysis",
     "Detection",
     "TaskRun",
     "AppSetting",
-]   
+]      
