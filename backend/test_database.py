@@ -36,10 +36,10 @@ def create_tables():
 def test_user_model():
     """Test User model operations"""
     print("👤 Testing User model...")
-    
+
     try:
         db = next(get_db())
-        
+
         # Create a test user
         test_user = User(
             email="test.engineer@tatapower.com",
@@ -51,10 +51,10 @@ def test_user_model():
             role="engineer"
         )
         test_user.set_password("testpassword123")
-        
+
         db.add(test_user)
         db.commit()
-        
+
         # Verify user was created
         created_user = db.query(User).filter(User.email == "test.engineer@tatapower.com").first()
         if created_user:
@@ -65,7 +65,7 @@ def test_user_model():
         else:
             print("❌ User creation failed")
             return False
-            
+
     except Exception as e:
         print(f"❌ User model test failed: {e}")
         return False
@@ -73,10 +73,10 @@ def test_user_model():
 def test_substation_model():
     """Test Substation model operations"""
     print("🏭 Testing Substation model...")
-    
+
     try:
         db = next(get_db())
-        
+
         # Create Salsette Camp substation
         salsette_substation = Substation(
             name="Salsette Camp Substation",
@@ -90,19 +90,19 @@ def test_substation_model():
             engineer_in_charge="Test Engineer",
             control_room_phone="+91-22-1234567"
         )
-        
+
         db.add(salsette_substation)
         db.commit()
-        
+
         # Test GPS proximity check
         test_lat, test_lon = 19.1265, 72.8895  # Very close coordinates
         is_within = salsette_substation.is_point_within_boundary(test_lat, test_lon)
         distance = salsette_substation.get_distance_to_point(test_lat, test_lon)
-        
+
         print(f"✅ Substation created: {salsette_substation.name}")
         print(f"✅ GPS test - Distance: {distance:.1f}m, Within boundary: {is_within}")
         return True
-        
+
     except Exception as e:
         print(f"❌ Substation model test failed: {e}")
         return False
@@ -110,18 +110,18 @@ def test_substation_model():
 def test_thermal_scan_model():
     """Test ThermalScan model operations"""
     print("📸 Testing ThermalScan model...")
-    
+
     try:
         db = next(get_db())
-        
+
         # Get user and substation for foreign keys
         user = db.query(User).first()
         substation = db.query(Substation).first()
-        
+
         if not user or not substation:
             print("❌ Missing user or substation for thermal scan test")
             return False
-        
+
         # Create a thermal scan
         thermal_scan = ThermalScan(
             original_filename="FLIR1300.jpg",
@@ -140,19 +140,19 @@ def test_thermal_scan_model():
             substation_id=substation.id,
             uploaded_by=user.id
         )
-        
+
         db.add(thermal_scan)
         db.commit()
-        
+
         # Test status update
         thermal_scan.update_processing_status("processing")
         thermal_scan.update_processing_status("completed")
-        
+
         print(f"✅ Thermal scan created: {thermal_scan.original_filename}")
         print(f"✅ File size: {thermal_scan.file_size_str}")
         print(f"✅ Processing time: {thermal_scan.processing_time_str}")
         return True
-        
+
     except Exception as e:
         print(f"❌ Thermal scan model test failed: {e}")
         return False
@@ -160,16 +160,16 @@ def test_thermal_scan_model():
 def test_ai_analysis_model():
     """Test AI Analysis model operations"""
     print("🤖 Testing AI Analysis model...")
-    
+
     try:
         db = next(get_db())
-        
+
         # Get thermal scan for foreign key
         thermal_scan = db.query(ThermalScan).first()
         if not thermal_scan:
             print("❌ Missing thermal scan for AI analysis test")
             return False
-        
+
         # Create AI analysis
         ai_analysis = AIAnalysis(
             thermal_scan_id=thermal_scan.id,
@@ -192,10 +192,10 @@ def test_ai_analysis_model():
             risk_score=65.0,
             summary_text="Medium risk thermal signature detected with 1 critical hotspot requiring attention."
         )
-        
+
         db.add(ai_analysis)
         db.commit()
-        
+
         # Create a detection
         detection = Detection(
             ai_analysis_id=ai_analysis.id,
@@ -213,17 +213,17 @@ def test_ai_analysis_model():
             temperature_above_ambient=33.5,
             risk_level="high"
         )
-        
+
         db.add(detection)
         db.commit()
-        
+
         print(f"✅ AI Analysis created: Risk level {ai_analysis.overall_risk_level}")
         print(f"✅ Detection summary: {ai_analysis.detection_summary}")
         print(f"✅ Hotspot summary: {ai_analysis.hotspot_summary}")
         print(f"✅ Detection created: {detection.component_type} (confidence: {detection.confidence})")
         print(f"✅ Is critical: {detection.is_critical}")
         return True
-        
+
     except Exception as e:
         print(f"❌ AI analysis model test failed: {e}")
         return False
@@ -231,7 +231,7 @@ def test_ai_analysis_model():
 def main():
     """Run all database tests"""
     print("🚀 Starting Thermal Inspection Database Tests\n")
-    
+
     tests = [
         ("Database Connection", test_database_connection),
         ("Table Creation", create_tables),
@@ -240,24 +240,24 @@ def main():
         ("Thermal Scan Model", test_thermal_scan_model),
         ("AI Analysis Model", test_ai_analysis_model)
     ]
-    
+
     passed = 0
     total = len(tests)
-    
+
     for test_name, test_func in tests:
         print(f"\n{'='*50}")
         print(f"Running: {test_name}")
         print('='*50)
-        
+
         if test_func():
             passed += 1
         else:
             print(f"❌ {test_name} FAILED")
-    
+
     print(f"\n{'='*50}")
     print(f"TEST RESULTS: {passed}/{total} tests passed")
     print('='*50)
-    
+
     if passed == total:
         print("🎉 ALL TESTS PASSED! Database setup is working perfectly!")
         return True

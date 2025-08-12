@@ -70,7 +70,7 @@ def test_auth_endpoints():
         else:
             print(f"❌ Auth health check failed: {response.status_code}")
             return False
-        
+
         # Test login endpoint (should fail without credentials)
         response = requests.post(f"{BASE_URL}/api/auth/login", data={
             "username": "nonexistent",
@@ -82,7 +82,7 @@ def test_auth_endpoints():
         else:
             print(f"❌ Login endpoint unexpected response: {response.status_code}")
             return False
-            
+
     except Exception as e:
         print(f"❌ Auth endpoints error: {e}")
         return False
@@ -95,7 +95,7 @@ def test_upload_endpoints():
         response = requests.get(f"{BASE_URL}/api/upload/health")
         if response.status_code == 200:
             print("✅ Upload service healthy")
-        
+
         # Test protected upload endpoint (should require auth)
         response = requests.post(f"{BASE_URL}/api/upload/thermal-images")
         if response.status_code == 401:
@@ -104,7 +104,7 @@ def test_upload_endpoints():
         else:
             print(f"❌ Upload endpoint unexpected response: {response.status_code}")
             return False
-            
+
     except Exception as e:
         print(f"❌ Upload endpoints error: {e}")
         return False
@@ -112,7 +112,7 @@ def test_upload_endpoints():
 def main():
     """Run all API tests"""
     print("🚀 Starting Thermal Inspection API Tests\n")
-    
+
     tests = [
         ("Root Endpoint", test_root_endpoint),
         ("Health Check", test_health_check),
@@ -120,24 +120,24 @@ def main():
         ("Authentication Endpoints", test_auth_endpoints),
         ("Upload Endpoints", test_upload_endpoints)
     ]
-    
+
     passed = 0
     total = len(tests)
-    
+
     for test_name, test_func in tests:
         print(f"\n{'='*50}")
         print(f"Running: {test_name}")
         print('='*50)
-        
+
         if test_func():
             passed += 1
         else:
             print(f"❌ {test_name} FAILED")
-    
+
     print(f"\n{'='*50}")
     print(f"API TEST RESULTS: {passed}/{total} tests passed")
     print('='*50)
-    
+
     if passed == total:
         print("🎉 ALL API TESTS PASSED! Backend is working correctly!")
         print(f"📊 API Documentation: {BASE_URL}/api/docs")
@@ -149,4 +149,4 @@ def main():
         return False
 
 if __name__ == "__main__":
-    main() 
+    main()   
