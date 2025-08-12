@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+from pydantic import ConfigDict
 from typing import List
 import os
 
@@ -87,7 +88,6 @@ class Settings(BaseSettings):
     SALSETTE_CAMP_LAT: float = 19.1262
     SALSETTE_CAMP_LON: float = 72.8897
     
-    class Config:
-        env_file = ".env"
+    model_config = ConfigDict(env_file=".env", extra="ignore")
 
 settings = Settings()                                                

@@ -297,7 +297,7 @@ const AIResults = () => {
   return (
     <div style={{ padding: '24px' }}>
       <div style={{ marginBottom: 24 }}>
-        <h1>🤖 AI Analysis Results</h1>
+        <h1>AI Analysis Results</h1>
         <p>Detailed results from YOLO-NAS + CNN thermal analysis pipeline</p>
       </div>
 
@@ -386,7 +386,7 @@ const AIResults = () => {
         <TabPane tab="AI Model Performance" key="3">
           <Row gutter={16}>
             <Col span={12}>
-              <Card title="🎯 Object Detection Performance (YOLO-NAS)">
+              <Card title="Object Detection Performance (YOLO-NAS)">
                 <Descriptions column={1}>
                   <Descriptions.Item label="Model">YOLO-NAS-S</Descriptions.Item>
                   <Descriptions.Item label="Average Confidence">88.5%</Descriptions.Item>
@@ -403,7 +403,7 @@ const AIResults = () => {
               </Card>
             </Col>
             <Col span={12}>
-              <Card title="🧠 Defect Classification (EfficientNet-B0)">
+              <Card title="Defect Classification (EfficientNet-B0)">
                 <Descriptions column={1}>
                   <Descriptions.Item label="Model">EfficientNet-B0 + Thermal Branch</Descriptions.Item>
                   <Descriptions.Item label="Classification Accuracy">91.3%</Descriptions.Item>
@@ -422,7 +422,7 @@ const AIResults = () => {
 
           <Row gutter={16} style={{ marginTop: 16 }}>
             <Col span={24}>
-              <Card title="🔬 Advanced Thermal Analysis">
+              <Card title="Advanced Thermal Analysis">
                 <Descriptions column={2}>
                   <Descriptions.Item label="Analysis Methods">
                     Color-to-Temperature Mapping, HSV Hot Region Detection, Edge-Enhanced Analysis, K-means Clustering
@@ -439,7 +439,7 @@ const AIResults = () => {
 
       {/* Analysis Details Modal */}
       <Modal
-        title={`🤖 AI Analysis Details: ${selectedAnalysis?.filename}`}
+        title={`AI Analysis Details: ${selectedAnalysis?.filename}`}
         visible={modalVisible}
         onCancel={() => setModalVisible(false)}
         footer={[

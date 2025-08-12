@@ -6,7 +6,6 @@ import {
   ExperimentOutlined,
   BankOutlined,
   FileTextOutlined,
-  FireOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -103,7 +102,7 @@ const Sidebar = ({ collapsed, currentPage, onPageChange }) => {
           marginBottom: 24,
         }}
       >
-        <FireOutlined
+        <DashboardOutlined
           style={{
             fontSize: collapsed ? '24px' : '32px',
             color: '#667eea',
