@@ -128,53 +128,69 @@ class ProductionModelLoader:
             os.environ.setdefault("TORCH_HOME", os.path.join("models", "cache"))
             os.environ.setdefault("HF_HUB_CACHE", os.path.join("models", "cache"))
             Path(os.environ["TORCH_HOME"]).mkdir(parents=True, exist_ok=True)
-            self.logger.info(f"🤖 Loading YOLOv8 model for component detection...")
-            
-            from ultralytics import YOLO
-            # Prefer local weights; fallback to built-in if missing, but do not download in production without cache
-            local_weights = Path('yolov8n.pt')
-            model = YOLO(str(local_weights) if local_weights.exists() else 'yolov8n.pt')
-            
+            self.logger.info(f"🤖 Loading YOLO-NAS model for component detection...")
+            weights_rel = self.model_config[model_name]["filename"]
+            weights_path = self.models_dir / weights_rel
+
+            if not weights_path.exists():
+                if os.getenv("ALLOW_MODEL_DOWNLOAD", "false").lower() == "true":
+                    import requests
+                    url = self.model_config[model_name]["url"]
+                    self.logger.info(f"Downloading YOLO-NAS weights from {url} ...")
+                    with requests.get(url, stream=True, timeout=60) as r:
+                        r.raise_for_status()
+                        with open(weights_path, "wb") as f:
+                            for chunk in r.iter_content(chunk_size=8192):
+                                if chunk:
+                                    f.write(chunk)
+                    self.logger.info("Download completed")
+                else:
+                    raise ModelLoadingError(f"Missing weights file: {weights_path}. Set ALLOW_MODEL_DOWNLOAD=true to fetch.")
+
+            self.verify_model_integrity(model_name)
+
+            from super_gradients.training import models as sg_models
+            from super_gradients.common.object_names import Models
+
+            model = sg_models.get(Models.YOLO_NAS_S, checkpoint_path=str(weights_path))
             if model is None:
-                raise ModelLoadingError("Failed to load YOLOv8 model")
-            
+                raise ModelLoadingError("Failed to load YOLO-NAS model")
+
             self.loaded_models[model_name] = model
-            
-            # Calculate model size
+
             model_size_mb = self._estimate_model_size(model)
-            
+
             self.model_metadata[model_name] = {
                 "loaded_at": datetime.now().isoformat(),
-                "version": "yolov8n_coco_v1.0",
+                "version": "yolo_nas_s_coco_v1.0",
                 "status": "loaded",
                 "memory_size_mb": model_size_mb,
-                "model_type": "yolov8",
-                "note": "YOLOv8 nano model with COCO pretrained weights"
+                "model_type": "yolo_nas"
             }
-            
-            self.logger.info(f"✅ YOLOv8 model loaded successfully ({model_size_mb:.1f}MB)")
+
+            self.logger.info(f"✅ YOLO-NAS model loaded successfully ({model_size_mb:.1f}MB)")
             return model
-            
+
         except ImportError as e:
-            self.logger.error(f"❌ ultralytics not available: {e}")
+            self.logger.error(f"❌ super-gradients not available: {e}")
             self.model_metadata[model_name] = {
                 "loaded_at": datetime.now().isoformat(),
-                "version": "pattern_fallback_v1.0",
+                "version": "unavailable",
                 "status": "import_error",
                 "memory_size_mb": 0,
-                "model_type": "pattern_detection",
-                "error": f"ultralytics import failed: {e}"
+                "model_type": "yolo_nas",
+                "error": f"super-gradients import failed: {e}"
             }
             return None
-            
+
         except Exception as e:
-            self.logger.error(f"❌ YOLOv8 model loading failed: {e}")
+            self.logger.error(f"❌ YOLO-NAS model loading failed: {e}")
             self.model_metadata[model_name] = {
                 "loaded_at": datetime.now().isoformat(),
-                "version": "pattern_fallback_v1.0",
+                "version": "unavailable",
                 "status": "load_error",
                 "memory_size_mb": 0,
-                "model_type": "pattern_detection",
+                "model_type": "yolo_nas",
                 "error": str(e)
             }
             return None
@@ -297,4 +313,4 @@ class ProductionModelLoader:
             return True
 
 # Global model loader instance
-model_loader = ProductionModelLoader()                                                                                                        
+model_loader = ProductionModelLoader()                                                                                                                                                                                                                
