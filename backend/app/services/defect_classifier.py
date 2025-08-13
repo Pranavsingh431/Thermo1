@@ -30,6 +30,7 @@ class DefectClassification:
     confidence_score: float = 0.0
     defect_description: str = ""
     recommended_action: str = ""
+    weather_context: Optional[Dict] = None
 
 class TataPowerDefectClassifier:
     """IEEE C57.91 compliant thermal defect classifier for Tata Power"""
@@ -44,16 +45,33 @@ class TataPowerDefectClassifier:
         }
         
     def classify_thermal_defects(self, detections: List[Dict], ambient_temp: float = 25.0) -> List[DefectClassification]:
-        """Classify thermal defects according to IEEE standards"""
+        """Classify thermal defects according to IEEE standards with weather comparison"""
         classifications = []
         
         try:
+            from app.services.weather_service import weather_service
+            weather_data = weather_service.get_mumbai_weather()
+            
+            if weather_data:
+                mumbai_ambient = weather_data['temperature']
+                self.logger.info(f"🌡️ Mumbai ambient temperature: {mumbai_ambient}°C")
+                if ambient_temp == 25.0:  # Default value
+                    ambient_temp = mumbai_ambient
+                    self.logger.info(f"✅ Using Mumbai ambient temperature: {ambient_temp}°C")
+            
             for detection in detections:
                 classification = self._classify_single_detection(detection, ambient_temp)
                 if classification:
+                    if weather_data:
+                        classification.weather_context = {
+                            'mumbai_temp': weather_data['temperature'],
+                            'humidity': weather_data['humidity'],
+                            'wind_speed': weather_data['wind_speed'],
+                            'condition': weather_data['description']
+                        }
                     classifications.append(classification)
                     
-            self.logger.info(f"✅ Classified {len(classifications)} components using IEEE standards")
+            self.logger.info(f"✅ Classified {len(classifications)} components using IEEE standards with weather data")
             return classifications
             
         except Exception as e:
