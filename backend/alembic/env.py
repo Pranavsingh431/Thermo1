@@ -6,7 +6,7 @@ from sqlalchemy.engine import Connection
 from alembic import context
 import os
 from app.database import Base
-from app.models import user, thermal_scan, ai_analysis, substation, refresh_token
+from app.models import user, thermal_scan, ai_analysis, substation, refresh_token  # noqa: F401
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -54,7 +54,11 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection: Connection) -> None:
-    context.configure(connection=connection, target_metadata=target_metadata, compare_type=True)
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        compare_type=True
+    )
 
     with context.begin_transaction():
         context.run_migrations()
@@ -62,8 +66,12 @@ def do_run_migrations(connection: Connection) -> None:
 
 def run_sync_migrations() -> None:
     section = config.get_section(config.config_ini_section, {})
-    section["sqlalchemy.url"] = os.getenv("DATABASE_URL", section.get("sqlalchemy.url"))
-    connectable = create_engine(section["sqlalchemy.url"], poolclass=pool.NullPool)
+    section["sqlalchemy.url"] = os.getenv(
+        "DATABASE_URL", section.get("sqlalchemy.url")
+    )
+    connectable = create_engine(
+        section["sqlalchemy.url"], poolclass=pool.NullPool
+    )
 
     with connectable.connect() as connection:
         do_run_migrations(connection)

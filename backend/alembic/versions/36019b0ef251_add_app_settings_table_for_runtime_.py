@@ -9,7 +9,7 @@ from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
+from sqlalchemy.dialects import postgresql  # noqa: F401
 
 # revision identifiers, used by Alembic.
 revision: str = '36019b0ef251'
@@ -20,17 +20,22 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     # Minimal: create app_settings table only
-    op.create_table('app_settings',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('key', sa.String(length=100), nullable=False),
-    sa.Column('value', sa.JSON(), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('key', name='uq_app_settings_key')
+    op.create_table(
+        'app_settings',
+        sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('key', sa.String(length=100), nullable=False),
+        sa.Column('value', sa.JSON(), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True),
+                  server_default=sa.text('now()'), nullable=False),
+        sa.Column('updated_at', sa.DateTime(timezone=True),
+                  server_default=sa.text('now()'), nullable=True),
+        sa.PrimaryKeyConstraint('id'),
+        sa.UniqueConstraint('key', name='uq_app_settings_key')
     )
-    op.create_index(op.f('ix_app_settings_id'), 'app_settings', ['id'], unique=False)
-    op.create_index(op.f('ix_app_settings_key'), 'app_settings', ['key'], unique=False)
+    op.create_index(op.f('ix_app_settings_id'), 'app_settings',
+                    ['id'], unique=False)
+    op.create_index(op.f('ix_app_settings_key'), 'app_settings',
+                    ['key'], unique=False)
 
 
 def downgrade() -> None:

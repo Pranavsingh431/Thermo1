@@ -8,7 +8,7 @@ Create Date: 2025-08-10 11:56:48.454040
 from typing import Sequence, Union
 
 from alembic import op
-import sqlalchemy as sa
+import sqlalchemy as sa  # noqa: F401
 
 
 # revision identifiers, used by Alembic.
@@ -20,7 +20,8 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     # Drop existing FK and recreate with ON DELETE CASCADE
-    op.drop_constraint('ai_analyses_thermal_scan_id_fkey', 'ai_analyses', type_='foreignkey')
+    op.drop_constraint('ai_analyses_thermal_scan_id_fkey', 'ai_analyses',
+                       type_='foreignkey')
     op.create_foreign_key(
         'ai_analyses_thermal_scan_id_fkey',
         'ai_analyses', 'thermal_scans',
@@ -29,7 +30,8 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_constraint('ai_analyses_thermal_scan_id_fkey', 'ai_analyses', type_='foreignkey')
+    op.drop_constraint('ai_analyses_thermal_scan_id_fkey', 'ai_analyses',
+                       type_='foreignkey')
     op.create_foreign_key(
         'ai_analyses_thermal_scan_id_fkey',
         'ai_analyses', 'thermal_scans',
