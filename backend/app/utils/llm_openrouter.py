@@ -23,7 +23,7 @@ class OpenRouterClient:
                  timeout_seconds: float = 25.0,
                   max_retries: int = 3,
                   max_tokens: int = 512):
-        self.api_key = api_key or settings.OPEN_ROUTER_KEY or os.getenv("OPEN_ROUTER_KEY", "")
+        self.api_key = (api_key or settings.OPEN_ROUTER_KEY or os.getenv("OPEN_ROUTER_KEY", "")).strip()
         self.base_url = base_url or settings.OPENROUTER_BASE_URL
         self.models = models or settings.OPENROUTER_MODELS
         self.timeout_seconds = timeout_seconds
@@ -31,8 +31,11 @@ class OpenRouterClient:
         self.max_tokens = max_tokens
 
     def _headers(self) -> Dict[str, str]:
+        if not self.api_key or self.api_key.strip() == "":
+            raise ValueError("OpenRouter API key is empty or not configured")
+        
         return {
-            "Authorization": f"Bearer {self.api_key}",
+            "Authorization": f"Bearer {self.api_key.strip()}",
             "Content-Type": "application/json",
             # Optional OpenRouter headers for usage attribution
             "HTTP-Referer": os.getenv("OPENROUTER_REFERRER", "http://localhost"),
@@ -67,7 +70,7 @@ class OpenRouterClient:
             resp.raise_for_status()
             return resp.json(), duration
 
-    def generate_analysis(self, analysis_data: Dict, image_path: str = None) -> Dict:
+    def generate_analysis(self, analysis_data: Dict, image_path: Optional[str] = None) -> Dict:
         """Generate analysis - alias for generate_json for backward compatibility"""
         prompt = f"Analyze thermal inspection data: {analysis_data}"
         return self.generate_json(prompt)

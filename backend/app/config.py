@@ -77,6 +77,10 @@ class Settings(BaseSettings):
     # Mumbai Salsette Substation Coordinates (for testing)
     SALSETTE_CAMP_LAT: float = 19.1262
     SALSETTE_CAMP_LON: float = 72.8897
+    
+    WEATHER_API_KEY: str = os.getenv("WEATHER_API_KEY", "a15809d64199def40fbd6f979dca601a")
+    AMBIENT_TEMPERATURE_DEFAULT: float = 25.0
+    
     model_config = ConfigDict(env_file=".env", extra="ignore")
 
-settings = Settings()                                                                                                                                                                                                
+settings = Settings()                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
