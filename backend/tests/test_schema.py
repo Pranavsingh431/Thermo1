@@ -1,17 +1,34 @@
 import os
+import uuid
+
 import pytest
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError
 
 os.environ.setdefault("DATABASE_URL", "sqlite:///./test_thermal_inspection.db")
 
-from app.database import SessionLocal  # noqa: E402
-from app.models.user import User  # noqa: E402
-from app.models.thermal_scan import ThermalScan  # noqa: E402
+from app.database import Base, SessionLocal, engine  # noqa: E402
 from app.models.ai_analysis import AIAnalysis  # noqa: E402
+from app.models.thermal_scan import ThermalScan  # noqa: E402
+from app.models.user import User  # noqa: E402
 
 
-import uuid
+@pytest.fixture(scope="function", autouse=True)
+def setup_database():
+    """Create tables before each test and clean up after."""
+    from sqlalchemy import event
+
+    def enable_foreign_keys(dbapi_connection, connection_record):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
+
+    event.listen(engine, "connect", enable_foreign_keys)
+
+    # Create all tables
+    Base.metadata.create_all(bind=engine)
+    yield
+    Base.metadata.drop_all(bind=engine)
 
 
 def test_unique_file_hash_enforced():
@@ -19,7 +36,12 @@ def test_unique_file_hash_enforced():
     try:
         # Create a user to satisfy FK
         suffix = uuid.uuid4().hex[:8]
-        u = User(username=f"tmp_u1_{suffix}", email=f"tmp_u1_{suffix}@example.com", full_name="Tmp U1", role="engineer")
+        u = User(
+            username=f"tmp_u1_{suffix}",
+            email=f"tmp_u1_{suffix}@example.com",
+            full_name="Tmp U1",
+            role="engineer"
+        )
         u.set_password("pass")
         session.add(u)
         session.commit()
@@ -31,7 +53,7 @@ def test_unique_file_hash_enforced():
             file_path="/tmp/a.jpg",
             file_size_bytes=1,
             file_hash=common_hash,
-            capture_timestamp=text("now()"),
+            capture_timestamp=text("datetime('now')"),
             uploaded_by=u.id,
         )
         session.add(s1)
@@ -42,7 +64,7 @@ def test_unique_file_hash_enforced():
             file_path="/tmp/b.jpg",
             file_size_bytes=1,
             file_hash=common_hash,
-            capture_timestamp=text("now()"),
+            capture_timestamp=text("datetime('now')"),
             uploaded_by=u.id,
         )
         session.add(s2)
@@ -61,7 +83,7 @@ def test_uploaded_by_fk_enforced():
             file_path="/tmp/c.jpg",
             file_size_bytes=1,
             file_hash="cafebabe" * 8,
-            capture_timestamp=text("now()"),
+            capture_timestamp=text("datetime('now')"),
             uploaded_by=999999,  # non-existent
         )
         session.add(s)
@@ -77,7 +99,12 @@ def test_ai_analysis_fk_cascade_delete():
     try:
         # Create user and scan
         suffix = uuid.uuid4().hex[:8]
-        u = User(username=f"tmp_u2_{suffix}", email=f"tmp_u2_{suffix}@example.com", full_name="Tmp U2", role="engineer")
+        u = User(
+            username=f"tmp_u2_{suffix}",
+            email=f"tmp_u2_{suffix}@example.com",
+            full_name="Tmp U2",
+            role="engineer"
+        )
         u.set_password("pass")
         session.add(u)
         session.commit()
@@ -88,7 +115,7 @@ def test_ai_analysis_fk_cascade_delete():
             file_path="/tmp/d.jpg",
             file_size_bytes=1,
             file_hash=(uuid.uuid4().hex + uuid.uuid4().hex)[:64],
-            capture_timestamp=text("now()"),
+            capture_timestamp=text("datetime('now')"),
             uploaded_by=u.id,
         )
         session.add(s)
@@ -129,7 +156,9 @@ def test_ai_analysis_fk_cascade_delete():
         session.delete(s)
         session.commit()
 
-        remaining = session.query(AIAnalysis).filter(AIAnalysis.id == analysis_id).first()
+        remaining = session.query(AIAnalysis).filter(
+            AIAnalysis.id == analysis_id
+        ).first()
         assert remaining is None
     finally:
         session.rollback()

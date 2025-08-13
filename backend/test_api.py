@@ -3,14 +3,11 @@
 Test script for Thermal Inspection API
 """
 
-import sys
-import os
 import requests
-import json
-from datetime import datetime
 
 # API base URL
 BASE_URL = "http://localhost:8000"
+
 
 def test_health_check():
     """Test API health check"""
@@ -28,6 +25,7 @@ def test_health_check():
         print(f"❌ Health check error: {e}")
         return False
 
+
 def test_root_endpoint():
     """Test root endpoint"""
     print("🔍 Testing root endpoint...")
@@ -44,6 +42,7 @@ def test_root_endpoint():
         print(f"❌ Root endpoint error: {e}")
         return False
 
+
 def test_docs_endpoint():
     """Test API documentation"""
     print("🔍 Testing API docs...")
@@ -58,6 +57,7 @@ def test_docs_endpoint():
     except Exception as e:
         print(f"❌ API docs error: {e}")
         return False
+
 
 def test_auth_endpoints():
     """Test authentication endpoints"""
@@ -87,6 +87,7 @@ def test_auth_endpoints():
         print(f"❌ Auth endpoints error: {e}")
         return False
 
+
 def test_upload_endpoints():
     """Test upload endpoints (without authentication)"""
     print("🔍 Testing upload endpoints...")
@@ -108,6 +109,7 @@ def test_upload_endpoints():
     except Exception as e:
         print(f"❌ Upload endpoints error: {e}")
         return False
+
 
 def main():
     """Run all API tests"""
@@ -145,8 +147,9 @@ def main():
         return True
     else:
         print("⚠️ Some API tests failed. Check the server is running:")
-        print(f"🚀 Start server: cd backend && python3 -m uvicorn app.main:app --reload")
+        print("🚀 Start server: cd backend && python3 -m uvicorn app.main:app --reload")
         return False
 
+
 if __name__ == "__main__":
-    main()   
+    main()
