@@ -29,7 +29,8 @@ print("✅ Auth router registered")
 app.include_router(upload.router, prefix="/api/upload", tags=["File Upload"])
 print("✅ Upload router registered")
 
-app.include_router(dashboard.router, prefix="/api/dashboard", tags=["Dashboard"])
+app.include_router(dashboard.router, prefix="/api/dashboard",
+                   tags=["Dashboard"])
 print("✅ Dashboard router registered")
 
 print("\n=== FINAL APP ROUTES ===")

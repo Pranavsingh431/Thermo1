@@ -40,7 +40,8 @@ def demo_user_info(token):
     """Demo getting user information"""
     print("\n👤 Getting User Information...")
     headers = {"Authorization": f"Bearer {token}"}
-    response = requests.get(f"{BASE_URL}/api/auth/me", headers=headers)if response.status_code == 200:
+    response = requests.get(f"{BASE_URL}/api/auth/me", headers=headers)
+    if response.status_code == 200:
         user_data = response.json()
         print(f"✅ User: {user_data['full_name']} ({user_data['role']})")
         print(f"   Department: {user_data['department']}")
@@ -54,7 +55,8 @@ def demo_dashboard_stats(token):
     """Demo dashboard statistics"""
     print("\n📊 Getting Dashboard Statistics...")
     headers = {"Authorization": f"Bearer {token}"}
-    response = requests.get(f"{BASE_URL}/api/dashboard/stats", headers=headers)if response.status_code == 200:
+    response = requests.get(f"{BASE_URL}/api/dashboard/stats", headers=headers)
+    if response.status_code == 200:
         stats = response.json()
         print("✅ Dashboard Stats:")
         print(f"   📸 Total Images: {stats['total_images_processed']}")
@@ -70,7 +72,8 @@ def demo_substations(token):
     """Demo substation information"""
     print("\n🏭 Getting Substation Information...")
     headers = {"Authorization": f"Bearer {token}"}
-    response = requests.get(f"{BASE_URL}/api/dashboard/substations", headers=headers)if response.status_code == 200:
+    response = requests.get(f"{BASE_URL}/api/dashboard/substations", headers=headers)
+    if response.status_code == 200:
         substations = response.json()
         print(f"✅ Found {len(substations)} substations:")
         for sub in substations:
@@ -241,4 +244,4 @@ if __name__ == "__main__":
     if success:
         print(f"\n🌐 Access the system at: {BASE_URL}/api/docs")
     else:
-        print("\n❌ Demo failed. Please check the server and try again.")    
+        print("\n❌ Demo failed. Please check the server and try again.")        
