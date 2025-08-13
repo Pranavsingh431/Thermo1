@@ -8,7 +8,7 @@ Create Date: 2025-08-10 11:45:46.520710
 from typing import Sequence, Union
 
 from alembic import op
-import sqlalchemy as sa
+import sqlalchemy as sa  # noqa: F401
 
 
 # revision identifiers, used by Alembic.
@@ -58,13 +58,16 @@ def upgrade() -> None:
     # Substations: add voltage_level and other columns if missing
     op.execute("""
     DO $$ BEGIN
-      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='substations' AND column_name='voltage_level') THEN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                     WHERE table_name='substations' AND column_name='voltage_level') THEN
         ALTER TABLE substations ADD COLUMN voltage_level VARCHAR(50);
       END IF;
-      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='substations' AND column_name='boundary_coordinates') THEN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                     WHERE table_name='substations' AND column_name='boundary_coordinates') THEN
         ALTER TABLE substations ADD COLUMN boundary_coordinates JSONB;
       END IF;
-      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='substations' AND column_name='inspection_radius') THEN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                     WHERE table_name='substations' AND column_name='inspection_radius') THEN
         ALTER TABLE substations ADD COLUMN inspection_radius DOUBLE PRECISION DEFAULT 500.0;
       END IF;
       IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='substations' AND column_name='updated_at') THEN

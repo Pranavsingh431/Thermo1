@@ -44,12 +44,12 @@ class ProductionModelLoader:
 
         # Model configuration with expected checksums
         self.model_config = {
-            "yolo_nas_s": {
-                "filename": "yolo_nas_s_coco.pth",
+            "yolov8n": {
+                "filename": "yolov8n.pt",
                 "expected_sha256": None,  # Will be calculated on first successful download
-                "url": "https://sghub.deci.ai/models/yolo_nas_s_coco.pth",
-                "description": "YOLO-NAS Small model trained on COCO dataset",
-                "version": "1.0"
+                "url": "https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt",
+                "description": "YOLOv8 Nano model trained on COCO dataset",
+                "version": "8.1.0"
             }
         }
 
@@ -114,83 +114,63 @@ class ProductionModelLoader:
         except Exception as e:
             raise ModelIntegrityError(f"Failed to verify model {model_name}: {e}")
     
-    def load_yolo_nas_model(self) -> Any:
+    def load_yolo_model(self) -> Any:
         """
-        Load YOLO-NAS model for component detection.
+        Load Ultralytics YOLO model for component detection.
         
         Returns:
-            YOLO-NAS model instance or None if loading fails
+            YOLO model instance or None if loading fails
         """
-        model_name = "yolo_nas_s"
+        model_name = "yolov8n"
         
         try:
             # Configure caches for offline-friendly weight handling
             os.environ.setdefault("TORCH_HOME", os.path.join("models", "cache"))
             os.environ.setdefault("HF_HUB_CACHE", os.path.join("models", "cache"))
             Path(os.environ["TORCH_HOME"]).mkdir(parents=True, exist_ok=True)
-            self.logger.info(f"🤖 Loading YOLO-NAS model for component detection...")
-            weights_rel = self.model_config[model_name]["filename"]
-            weights_path = self.models_dir / weights_rel
+            self.logger.info(f"🤖 Loading Ultralytics YOLO model for component detection...")
 
-            if not weights_path.exists():
-                if os.getenv("ALLOW_MODEL_DOWNLOAD", "false").lower() == "true":
-                    import requests
-                    url = self.model_config[model_name]["url"]
-                    self.logger.info(f"Downloading YOLO-NAS weights from {url} ...")
-                    with requests.get(url, stream=True, timeout=60) as r:
-                        r.raise_for_status()
-                        with open(weights_path, "wb") as f:
-                            for chunk in r.iter_content(chunk_size=8192):
-                                if chunk:
-                                    f.write(chunk)
-                    self.logger.info("Download completed")
-                else:
-                    raise ModelLoadingError(f"Missing weights file: {weights_path}. Set ALLOW_MODEL_DOWNLOAD=true to fetch.")
-
-            self.verify_model_integrity(model_name)
-
-            from super_gradients.training import models as sg_models
-            from super_gradients.common.object_names import Models
-
-            model = sg_models.get(Models.YOLO_NAS_S, checkpoint_path=str(weights_path))
+            from ultralytics import YOLO
+            
+            model = YOLO('yolov8n.pt')
             if model is None:
-                raise ModelLoadingError("Failed to load YOLO-NAS model")
+                raise ModelLoadingError("Failed to load YOLO model")
 
             self.loaded_models[model_name] = model
 
-            model_size_mb = self._estimate_model_size(model)
+            model_size_mb = 6.2  # YOLOv8n is approximately 6.2MB
 
             self.model_metadata[model_name] = {
                 "loaded_at": datetime.now().isoformat(),
-                "version": "yolo_nas_s_coco_v1.0",
+                "version": "yolov8n_v8.1.0",
                 "status": "loaded",
                 "memory_size_mb": model_size_mb,
-                "model_type": "yolo_nas"
+                "model_type": "ultralytics_yolo"
             }
 
-            self.logger.info(f"✅ YOLO-NAS model loaded successfully ({model_size_mb:.1f}MB)")
+            self.logger.info(f"✅ Ultralytics YOLO model loaded successfully ({model_size_mb:.1f}MB)")
             return model
 
         except ImportError as e:
-            self.logger.error(f"❌ super-gradients not available: {e}")
+            self.logger.error(f"❌ ultralytics not available: {e}")
             self.model_metadata[model_name] = {
                 "loaded_at": datetime.now().isoformat(),
                 "version": "unavailable",
                 "status": "import_error",
                 "memory_size_mb": 0,
-                "model_type": "yolo_nas",
-                "error": f"super-gradients import failed: {e}"
+                "model_type": "ultralytics_yolo",
+                "error": f"ultralytics import failed: {e}"
             }
             return None
 
         except Exception as e:
-            self.logger.error(f"❌ YOLO-NAS model loading failed: {e}")
+            self.logger.error(f"❌ YOLO model loading failed: {e}")
             self.model_metadata[model_name] = {
                 "loaded_at": datetime.now().isoformat(),
                 "version": "unavailable",
                 "status": "load_error",
                 "memory_size_mb": 0,
-                "model_type": "yolo_nas",
+                "model_type": "ultralytics_yolo",
                 "error": str(e)
             }
             return None
@@ -279,20 +259,20 @@ class ProductionModelLoader:
         self.logger.info("🚀 Initializing production AI models...")
         
         try:
-            yolo_model = self.load_yolo_nas_model()
+            yolo_model = self.load_yolo_model()
             
             if yolo_model is None:
-                self.logger.warning("⚠️ YOLOv8 model not available - using pattern detection fallback")
-                self.model_metadata["yolo_nas_s"] = {
+                self.logger.warning("⚠️ YOLO model not available - using pattern detection fallback")
+                self.model_metadata["yolov8n"] = {
                     "loaded_at": datetime.now().isoformat(),
                     "version": "pattern_fallback_v1.0",
                     "status": "fallback",
                     "memory_size_mb": 0,
                     "model_type": "pattern_detection",
-                    "note": "Using bulletproof pattern detection due to YOLOv8 loading issues"
+                    "note": "Using bulletproof pattern detection due to YOLO loading issues"
                 }
             else:
-                self.logger.info("✅ YOLOv8 model loaded successfully")
+                self.logger.info("✅ YOLO model loaded successfully")
             
             self.logger.info("✅ Production AI system initialized (bulletproof mode)")
             return True
@@ -301,7 +281,7 @@ class ProductionModelLoader:
             self.logger.warning(f"⚠️ Model initialization encountered issues: {e}")
             self.logger.info("🛡️ Falling back to bulletproof pattern detection")
             
-            self.model_metadata["yolo_nas_s"] = {
+            self.model_metadata["yolov8n"] = {
                 "loaded_at": datetime.now().isoformat(),
                 "version": "pattern_fallback_v1.0",
                 "status": "fallback",
@@ -313,4 +293,4 @@ class ProductionModelLoader:
             return True
 
 # Global model loader instance
-model_loader = ProductionModelLoader()                                                                                                                                                                                                                                                                                                                                                                                                                                
+model_loader = ProductionModelLoader()                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                

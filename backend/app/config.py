@@ -54,8 +54,8 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = ""  # Will be set via env var - use app password
     # Notification settings
     CHIEF_ENGINEER_EMAIL: str = "singhpranav431@gmail.com"  # Using user's email for testing
-    # OpenRouter / LLM
-    OPEN_ROUTER_KEY: str = ""
+    # OpenRouter / LLM - PRODUCTION READY
+    OPEN_ROUTER_KEY: str = os.getenv("OPEN_ROUTER_KEY", "")
     OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
     OPENROUTER_MODELS: List[str] = [
         "google/gemini-2.0-flash-exp:free",
@@ -79,4 +79,4 @@ class Settings(BaseSettings):
     SALSETTE_CAMP_LON: float = 72.8897
     model_config = ConfigDict(env_file=".env", extra="ignore")
 
-settings = Settings()                                                                                                
+settings = Settings()                                                                                                                                                                                                

@@ -19,7 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 
 # Import all API routers
-from app.api import auth, upload, dashboard, reports, two_factor
+from app.api import auth, upload, dashboard, reports, two_factor, feedback, substations, ai_results, thermal_scans
 from app.api.tasks import router as tasks_router
 from app.api.settings import router as settings_router
 from app.api.health import router as health_router
@@ -126,6 +126,10 @@ app.include_router(two_factor.router, prefix="/api/auth/2fa", tags=["Two-Factor 
 app.include_router(upload.router, prefix="/api/upload", tags=["File Upload"])
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["Dashboard"])
 app.include_router(reports.router, prefix="/api/reports", tags=["Reports"])
+app.include_router(feedback.router, prefix="/api/feedback", tags=["Feedback"])
+app.include_router(substations.router, tags=["Substations"])
+app.include_router(ai_results.router, tags=["AI Results"])
+app.include_router(thermal_scans.router, tags=["Thermal Scans"])
 app.include_router(tasks_router, prefix="/api/tasks", tags=["Tasks"])
 app.include_router(settings_router, prefix="/api", tags=["Settings"])
 
@@ -159,7 +163,8 @@ async def get_ai_analysis(analysis_id: int):
     from app.database import SessionLocal
     from app.models.ai_analysis import AIAnalysis
     
-    db = SessionLocal()try:
+    db = SessionLocal()
+    try:
         analysis = db.query(AIAnalysis).filter(AIAnalysis.id == analysis_id).first()
         if not analysis:
             raise HTTPException(status_code=404, detail="Analysis not found")
@@ -207,7 +212,8 @@ async def get_thermal_scan(scan_id: int):
     from app.models.thermal_scan import ThermalScan
     from app.models.ai_analysis import AIAnalysis
     
-    db = SessionLocal()try:
+    db = SessionLocal()
+    try:
         scan = db.query(ThermalScan).filter(ThermalScan.id == scan_id).first()
         if not scan:
             raise HTTPException(status_code=404, detail="Thermal scan not found")
@@ -271,11 +277,12 @@ if settings.ENVIRONMENT == "development":
                     "ieee_compliance": True,
                     "failsafe_ai": True,
                     "audit_trail": True
-            }    
+                }
+            }
         except Exception as e:
             logger.error(f"Development status check failed: {e}")
             return {"error": str(e), "status": "degraded"}
 
 # Production startup message
 logger.info("🛡️ Bulletproof Thermal Eye system initialized")
-logger.info("🎯 Ready for Tata Power production deployment")        
+logger.info("🎯 Ready for Tata Power production deployment")                                                
