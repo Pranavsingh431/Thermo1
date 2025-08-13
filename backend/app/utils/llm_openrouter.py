@@ -67,6 +67,11 @@ class OpenRouterClient:
             resp.raise_for_status()
             return resp.json(), duration
 
+    def generate_analysis(self, analysis_data: Dict, image_path: str = None) -> Dict:
+        """Generate analysis - alias for generate_json for backward compatibility"""
+        prompt = f"Analyze thermal inspection data: {analysis_data}"
+        return self.generate_json(prompt)
+    
     def generate_json(self, prompt: str, system: str = "You are an expert thermal inspection analyst.",
                       schema_hint: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         last_error = None

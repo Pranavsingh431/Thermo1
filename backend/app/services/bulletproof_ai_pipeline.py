@@ -9,6 +9,7 @@ Author: Production System for Tata Power Thermal Eye
 """
 
 import logging
+import os
 import time
 import traceback
 from typing import List, Dict, Optional, Any, Tuple
@@ -104,13 +105,13 @@ class BulletproofAIPipeline:
             model_loader.initialize_all_models()
             
             # Get YOLO model if available
-            if "yolo_nas_s" in model_loader.loaded_models:
-                self.yolo_model = model_loader.loaded_models["yolo_nas_s"]
+            if "yolov8n" in model_loader.loaded_models:
+                self.yolo_model = model_loader.loaded_models["yolov8n"]
                 self.model_status = "loaded"
-                self.logger.info("✅ YOLO-NAS model loaded successfully - Primary AI path ACTIVE")
+                self.logger.info("✅ YOLO model loaded successfully - Primary AI path ACTIVE")
             else:
                 self.model_status = "unavailable"
-                self.logger.warning("⚠️ YOLO-NAS model not available - Pattern fallback will be used")
+                self.logger.warning("⚠️ YOLO model not available - Pattern fallback will be used")
                 
         except (ModelIntegrityError, ModelLoadingError) as e:
             self.model_status = "failed"
@@ -121,6 +122,13 @@ class BulletproofAIPipeline:
             self.model_status = "critical_error"
             self.logger.critical(f"🚨 CRITICAL: Unexpected startup error: {e}")
             self.logger.critical("🛡️ System will attempt to continue with pattern fallback")
+    
+    def process_thermal_image(self, image_path: str, image_id: str = None, 
+                            ambient_temp: Optional[float] = None) -> BulletproofAnalysisResult:
+        """Process thermal image - alias for analyze_thermal_image for backward compatibility"""
+        if image_id is None:
+            image_id = os.path.basename(image_path)
+        return self.analyze_thermal_image(image_path, image_id, ambient_temp)
     
     def analyze_thermal_image(self, image_path: str, image_id: str, 
                             ambient_temp: Optional[float] = None) -> BulletproofAnalysisResult:
@@ -383,8 +391,19 @@ class BulletproofAIPipeline:
             if image is None:
                 raise ValueError(f"Could not load image: {image_path}")
             
+            # Get YOLO model from model loader
+            from app.services.model_loader import model_loader
+            yolo_model = model_loader.loaded_models.get("yolov8n")
+            
+            if yolo_model is None:
+                # Try to initialize model if not loaded
+                yolo_model = model_loader.load_yolo_model()
+                
+            if yolo_model is None:
+                raise RuntimeError("YOLO model not available")
+            
             # Run YOLOv8 inference
-            results = self.yolo_model(image, conf=0.3, verbose=False)
+            results = yolo_model(image, conf=0.3, verbose=False)
             
             # Process YOLOv8 results and map to transmission line components
             detections = []
@@ -679,4 +698,4 @@ class BulletproofAIPipeline:
         }
 
 # Global bulletproof pipeline instance
-bulletproof_ai_pipeline = BulletproofAIPipeline()                                                                                                
+bulletproof_ai_pipeline = BulletproofAIPipeline()                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
