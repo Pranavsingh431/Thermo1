@@ -80,7 +80,8 @@ def test_auth_endpoints():
             print("✅ Login properly rejects invalid credentials")
             return True
         else:
-            print(f"❌ Login endpoint unexpected response: {response.status_code}")
+            print(f"❌ Login endpoint unexpected response: "
+                  f"{response.status_code}")
             return False
 
     except Exception as e:
@@ -103,7 +104,8 @@ def test_upload_endpoints():
             print("✅ Upload endpoint properly requires authentication")
             return True
         else:
-            print(f"❌ Upload endpoint unexpected response: {response.status_code}")
+            print(f"❌ Upload endpoint unexpected response: "
+                  f"{response.status_code}")
             return False
 
     except Exception as e:
@@ -147,7 +149,8 @@ def main():
         return True
     else:
         print("⚠️ Some API tests failed. Check the server is running:")
-        print("🚀 Start server: cd backend && python3 -m uvicorn app.main:app --reload")
+        print("🚀 Start server: cd backend && "
+              "python3 -m uvicorn app.main:app --reload")
         return False
 
 

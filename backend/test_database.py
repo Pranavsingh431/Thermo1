@@ -63,11 +63,13 @@ def test_user_model():
             User.email == "test.engineer@tatapower.com"
         ).first()
         if created_user:
-            print(f"✅ User created: {created_user.full_name} ({created_user.role})")
+            print(f"✅ User created: {created_user.full_name} "
+                  f"({created_user.role})")
             print(f"✅ Password verification: "
                   f"{created_user.verify_password('testpassword123')}")
-            print(f"✅ User permissions - can_upload: {created_user.can_upload}, "
-                  f"is_engineer: {created_user.is_engineer}")
+            print(f"✅ User permissions - can_upload: "
+                  f"{created_user.can_upload}, is_engineer: "
+                  f"{created_user.is_engineer}")
             return True
         else:
             print("❌ User creation failed")
@@ -104,11 +106,14 @@ def test_substation_model():
 
         # Test GPS proximity check
         test_lat, test_lon = 19.1265, 72.8895  # Very close coordinates
-        is_within = salsette_substation.is_point_within_boundary(test_lat, test_lon)
-        distance = salsette_substation.get_distance_to_point(test_lat, test_lon)
+        is_within = salsette_substation.is_point_within_boundary(
+            test_lat, test_lon)
+        distance = salsette_substation.get_distance_to_point(
+            test_lat, test_lon)
 
         print(f"✅ Substation created: {salsette_substation.name}")
-        print(f"✅ GPS test - Distance: {distance:.1f}m, Within boundary: {is_within}")
+        print(f"✅ GPS test - Distance: {distance:.1f}m, "
+              f"Within boundary: {is_within}")
         return True
 
     except Exception as e:
@@ -200,8 +205,8 @@ def test_ai_analysis_model():
             polymer_insulators_count=1,
             overall_risk_level="medium",
             risk_score=65.0,
-            summary_text="Medium risk thermal signature detected with 1 critical "
-                         "hotspot requiring attention."
+            summary_text="Medium risk thermal signature detected with 1 "
+                         "critical hotspot requiring attention."
         )
 
         db.add(ai_analysis)
@@ -228,7 +233,8 @@ def test_ai_analysis_model():
         db.add(detection)
         db.commit()
 
-        print(f"✅ AI Analysis created: Risk level {ai_analysis.overall_risk_level}")
+        print(f"✅ AI Analysis created: Risk level "
+              f"{ai_analysis.overall_risk_level}")
         print(f"✅ Detection summary: {ai_analysis.detection_summary}")
         print(f"✅ Hotspot summary: {ai_analysis.hotspot_summary}")
         print(f"✅ Detection created: {detection.component_type} "
