@@ -6,7 +6,7 @@ from datetime import datetime
 
 from app.database import get_db
 from app.models.user import User
-from app.services.auth import get_current_user
+from app.utils.auth import get_current_user
 
 router = APIRouter(prefix="/api/substations", tags=["substations"])
 logger = logging.getLogger(__name__)

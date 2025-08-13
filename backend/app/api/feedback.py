@@ -5,7 +5,7 @@ import logging
 
 from app.database import get_db
 from app.models.user import User
-from app.services.auth import get_current_user
+from app.utils.auth import get_current_user
 from app.services.model_improvement import model_improvement_service
 
 router = APIRouter(prefix="/api/feedback", tags=["feedback"])

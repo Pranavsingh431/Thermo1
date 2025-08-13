@@ -10,7 +10,6 @@ from collections import defaultdict
 from app.database import get_db
 from app.models.ai_analysis import AIAnalysis
 from app.models.thermal_scan import ThermalScan
-from app.models.thermal_image import ThermalImage
 
 logger = logging.getLogger(__name__)
 
