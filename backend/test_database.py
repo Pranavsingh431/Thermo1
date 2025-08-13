@@ -3,14 +3,15 @@
 Test script to verify database models and setup
 """
 
-import sys
 import os
+import sys
+from datetime import datetime
+
+from app.database import Base, check_db_connection, engine, get_db
+from app.models import AIAnalysis, Detection, Substation, ThermalScan, User
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from app.database import engine, Base, get_db, check_db_connection
-from app.models import User, Substation, ThermalScan, AIAnalysis, Detection
-from sqlalchemy.orm import Session
-from datetime import datetime
 
 def test_database_connection():
     """Test database connection"""
@@ -22,6 +23,7 @@ def test_database_connection():
         print("❌ Database connection failed")
         return False
 
+
 def create_tables():
     """Create all database tables"""
     print("🏗️ Creating database tables...")
@@ -32,6 +34,7 @@ def create_tables():
     except Exception as e:
         print(f"❌ Failed to create tables: {e}")
         return False
+
 
 def test_user_model():
     """Test User model operations"""
@@ -56,11 +59,15 @@ def test_user_model():
         db.commit()
 
         # Verify user was created
-        created_user = db.query(User).filter(User.email == "test.engineer@tatapower.com").first()
+        created_user = db.query(User).filter(
+            User.email == "test.engineer@tatapower.com"
+        ).first()
         if created_user:
             print(f"✅ User created: {created_user.full_name} ({created_user.role})")
-            print(f"✅ Password verification: {created_user.verify_password('testpassword123')}")
-            print(f"✅ User permissions - can_upload: {created_user.can_upload}, is_engineer: {created_user.is_engineer}")
+            print(f"✅ Password verification: "
+                  f"{created_user.verify_password('testpassword123')}")
+            print(f"✅ User permissions - can_upload: {created_user.can_upload}, "
+                  f"is_engineer: {created_user.is_engineer}")
             return True
         else:
             print("❌ User creation failed")
@@ -69,6 +76,7 @@ def test_user_model():
     except Exception as e:
         print(f"❌ User model test failed: {e}")
         return False
+
 
 def test_substation_model():
     """Test Substation model operations"""
@@ -106,6 +114,7 @@ def test_substation_model():
     except Exception as e:
         print(f"❌ Substation model test failed: {e}")
         return False
+
 
 def test_thermal_scan_model():
     """Test ThermalScan model operations"""
@@ -157,6 +166,7 @@ def test_thermal_scan_model():
         print(f"❌ Thermal scan model test failed: {e}")
         return False
 
+
 def test_ai_analysis_model():
     """Test AI Analysis model operations"""
     print("🤖 Testing AI Analysis model...")
@@ -190,7 +200,8 @@ def test_ai_analysis_model():
             polymer_insulators_count=1,
             overall_risk_level="medium",
             risk_score=65.0,
-            summary_text="Medium risk thermal signature detected with 1 critical hotspot requiring attention."
+            summary_text="Medium risk thermal signature detected with 1 critical "
+                         "hotspot requiring attention."
         )
 
         db.add(ai_analysis)
@@ -220,13 +231,15 @@ def test_ai_analysis_model():
         print(f"✅ AI Analysis created: Risk level {ai_analysis.overall_risk_level}")
         print(f"✅ Detection summary: {ai_analysis.detection_summary}")
         print(f"✅ Hotspot summary: {ai_analysis.hotspot_summary}")
-        print(f"✅ Detection created: {detection.component_type} (confidence: {detection.confidence})")
+        print(f"✅ Detection created: {detection.component_type} "
+              f"(confidence: {detection.confidence})")
         print(f"✅ Is critical: {detection.is_critical}")
         return True
 
     except Exception as e:
         print(f"❌ AI analysis model test failed: {e}")
         return False
+
 
 def main():
     """Run all database tests"""
@@ -265,5 +278,6 @@ def main():
         print("⚠️ Some tests failed. Check the errors above.")
         return False
 
+
 if __name__ == "__main__":
-    main() 
+    main()

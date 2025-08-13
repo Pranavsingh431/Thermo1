@@ -14,7 +14,7 @@ class ThermalScan(Base):
     original_filename = Column(String(255), nullable=False)
     file_path = Column(String(500))  # Path where file is stored (temporarily)
     file_size_bytes = Column(Integer)
-    file_hash = Column(String(64), index=True)  # SHA-256 hash for deduplication
+    file_hash = Column(String(64), unique=True, index=True)  # SHA-256 hash for deduplication
     
     # FLIR image metadata
     camera_model = Column(String(100))  # e.g., "FLIR T560"
@@ -60,7 +60,7 @@ class ThermalScan(Base):
         "AIAnalysis",
         back_populates="thermal_scan",
         uselist=False,
-        passive_deletes=True,
+        cascade="all, delete-orphan",
     )
     
     # Metadata
@@ -144,4 +144,4 @@ class ThermalScan(Base):
                     self.processing_duration_seconds = None
     
     def __repr__(self):
-        return f"<ThermalScan(id={self.id}, filename='{self.original_filename}', status='{self.processing_status}')>" 
+        return f"<ThermalScan(id={self.id}, filename='{self.original_filename}', status='{self.processing_status}')>"  

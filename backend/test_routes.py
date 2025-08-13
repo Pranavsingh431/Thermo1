@@ -5,10 +5,11 @@ Test script to debug route registration
 
 import sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent))
 
 from fastapi import FastAPI
-from app.api import auth, upload, dashboard
+from app.api import auth, dashboard, upload
+
+sys.path.insert(0, str(Path(__file__).parent))
 
 # Create test app
 app = FastAPI(title="Test App")
@@ -31,10 +32,11 @@ print("✅ Upload router registered")
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["Dashboard"])
 print("✅ Dashboard router registered")
 
-print(f"\n=== FINAL APP ROUTES ===")
+print("\n=== FINAL APP ROUTES ===")
 for route in app.routes:
     if hasattr(route, 'path'):
         methods = getattr(route, 'methods', ['UNKNOWN'])
         print(f"  {route.path} {list(methods)}")
 
-print(f"\nTotal routes registered: {len([r for r in app.routes if hasattr(r, 'path')])}") 
+total_routes = len([r for r in app.routes if hasattr(r, 'path')])
+print(f"\nTotal routes registered: {total_routes}")
