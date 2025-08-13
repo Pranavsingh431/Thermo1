@@ -1,0 +1,15 @@
+[flake8]
+max-line-length = 79
+exclude = 
+    alembic/,
+    app/services/defect_classifier.py,
+    demo_system.py,
+    quick_*.py,
+    create_test_user.py,
+    __pycache__/,
+    .git/,
+    .venv/,
+    venv/
+per-file-ignores =
+    test_*.py:E501
+    scripts/*.py:E501
